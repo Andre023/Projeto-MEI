@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ClienteController;
+use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\ProdutoController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -10,6 +12,6 @@ Route::get('/user', function (Request $request) {
 
 Route::apiResource('clientes', ClienteController::class);
 
-Route::get('teste', function () {
-    return 'Rota de teste funcionando!';
-});
+Route::apiResource('categorias', CategoriaController::class);
+
+Route::apiResource('produtos', ProdutoController::class);

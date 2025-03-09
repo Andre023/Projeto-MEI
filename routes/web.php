@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -15,14 +16,26 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
+});
 
+// rota para clientes
 Route::get('/clientes', function () {
     return Inertia::render('Clientes');
 })->middleware(['auth', 'verified'])->name('clientes');
 
+// rota para categorias
+Route::get('/categorias', function () {
+    return Inertia::render('Categorias');
+})->middleware(['auth', 'verified'])->name('categorias');
+
+// rota para produtos
+Route::get('/produtos', function () {
+    return Inertia::render('Produtos');
+})->middleware(['auth', 'verified'])->name('produtos');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -30,8 +43,5 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::get('/clientes-view', function () {
-    return view('clientes'); // Essa view deve conter sua div com id "app" e carregar o bundle do Vite
-});
 
 require __DIR__.'/auth.php';

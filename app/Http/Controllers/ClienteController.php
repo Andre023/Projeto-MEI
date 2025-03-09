@@ -25,7 +25,7 @@ class ClienteController extends Controller
         ]);
 
         Cliente::create($data);
-        return redirect()->route('clientes.index')->with('success', 'Cliente criado com sucesso!');
+        return redirect()->route('clientes')->with('success', 'Cliente criado com sucesso!');
     }
 
     public function edit($id)
@@ -42,13 +42,13 @@ class ClienteController extends Controller
             'telefone' => 'required|string|max:20',
         ]);
         $cliente->update($data);
-        return redirect()->route('clientes.index')->with('success', 'Cliente atualizado com sucesso!');
+        return redirect()->route('clientes')->with('success', 'Cliente atualizado com sucesso!');
     }
 
     public function destroy($id)
     {
         $cliente = Cliente::findOrFail($id);
         $cliente->delete();
-        return redirect()->route('clientes.index')->with('success', 'Cliente excluído com sucesso!');
+        return redirect()->route('clientes')->with('success', 'Cliente excluído com sucesso!');
     }
 }

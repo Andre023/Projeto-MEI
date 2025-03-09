@@ -6,16 +6,6 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Clientes from './Pages/Clientes';
-
-const appElement = document.getElementById('app');
-if (appElement) {
-  ReactDOM.createRoot(appElement).render(
-    <React.StrictMode>
-      <Clientes />
-    </React.StrictMode>
-  );
-}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

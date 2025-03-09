@@ -1,0 +1,167 @@
+/* Estilos gerais para o formulário */
+.Create {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Arial', sans-serif;
+  color: #151515;
+  background-color: #f9f9f9; /* Fundo suave */
+  padding: 20px; /* Espaçamento interno */
+}
+
+.main-content {
+  padding-top: 4rem; /* Ajuste conforme a altura da sua navbar */
+}
+
+header, .top-section {
+  border-bottom: none; /* Remove a borda inferior que cria a linha */
+}
+
+nav {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra suave embaixo da navbar */
+}
+
+.navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Garante que a navbar fique acima de outros elementos */
+}
+
+/* Tabela do formulário aprimorada */
+.Create table {
+  border-collapse: collapse;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: left;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.Create table th,
+.Create table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0; /* Borda mais clara */
+}
+
+.Create thead th {
+  background-color: #34495e; /* Azul marinho */
+  color: #fff; /* Contraste com texto branco */
+  text-align: center;
+}
+
+/* Estilos para o formulário e botões */
+.formulario {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* Estilos para botões genéricos */
+button {
+  padding: 12px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Estilos específicos para botões de formulário */
+.btn-submit {
+  background-color: #27ae60; /* Verde escuro */
+  color: #fff;
+}
+
+.btn-submit:hover {
+  background-color: #1e8449; /* Verde mais escuro */
+  transform: translateY(-2px);
+}
+
+.btn-reset {
+  background-color: #c0392b; /* Vermelho suave */
+  color: #fff;
+}
+
+.btn-reset:hover {
+  background-color: #a93226; /* Vermelho mais escuro */
+  transform: translateY(-2px);
+}
+
+/* Tabela de listagem de dados */
+.DataTable {
+  border-collapse: collapse;
+  width: 80%;
+  margin: 20px auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.DataTable th,
+.DataTable td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0; /* Borda mais clara */
+  text-align: center;
+}
+
+.DataTable th {
+  background-color: #34495e; /* Azul marinho */
+  color: #fff; /* Contraste com texto branco */
+}
+
+/* Botões da tabela */
+.edit-btn {
+  background-color: #3498db; /* Azul claro */
+  color: #fff;
+  padding: 8px 15px;
+  margin-right: 10px;
+}
+
+.edit-btn:hover {
+  background-color: #2980b9; /* Azul mais escuro */
+  transform: translateY(-2px);
+}
+
+.delete-btn {
+  background-color: #c0392b; /* Vermelho suave */
+  color: #fff;
+  padding: 8px 15px;
+}
+
+.delete-btn:hover {
+  background-color: #a93226; /* Vermelho mais escuro */
+  transform: translateY(-2px);
+}
+
+/* Esconde as setinhas no Chrome, Safari, Edge e Opera */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Esconde as setinhas em todos os navegadores */
+input[type="number"] {
+  -webkit-appearance: none; /* Chrome, Safari, Edge e Opera */
+  -moz-appearance: textfield; /* Firefox */
+  appearance: none; /* Padrão, se suportado */
+  margin: 0;
+}
+
+.titulo {
+  font-size: 1.4rem;
+  color: #000000;
+  padding-top: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}

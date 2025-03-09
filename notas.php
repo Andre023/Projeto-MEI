@@ -17,3 +17,13 @@ $cliente = Cliente::create([
 */
 $user = App\Models\User::find(1); // Substitua 1 pelo ID desejado
 $user->delete();
+
+
+/* COMANDO PARA INSERIR CATEGORIAS NO BANCO DE DADOS
+ * php artisan tinker
+*/
+use App\Models\Categoria;
+
+$categoria = Categoria::create([
+    'categoria' => 'teste',
+]);
