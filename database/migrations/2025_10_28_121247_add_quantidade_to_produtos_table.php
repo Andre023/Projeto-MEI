@@ -4,29 +4,27 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddPrecoToProdutosTable extends Migration
+// Use o nome da classe que o artisan criou para você
+class AddQuantidadeToProdutosTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('produtos', function (Blueprint $table) {
-            $table->decimal('preco', 10, 2)->nullable();
+            // Adiciona a coluna de quantidade atual, com valor padrão 0
+            $table->integer('quantidade_estoque')->default(0)->after('preco');
         });
     }
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('produtos', function (Blueprint $table) {
-            $table->dropColumn('preco');
+            $table->dropColumn('quantidade_estoque');
         });
     }
-}
+};

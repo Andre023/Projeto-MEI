@@ -17,7 +17,7 @@ class CreateProdutosTable extends Migration
             $table->id();
             $table->string('nome');
             $table->text('descricao');
-            $table->integer('codigo');
+            $table->string('codigo', 25)->nullable()->unique();
             $table->decimal('preco', 10, 2);
             $table->unsignedBigInteger('categoria_id');
             $table->timestamps();

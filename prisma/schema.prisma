@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database/database.sqlite"
+}
+
+// --- Tabelas Principais do seu Negócio ---
+
+model produtos {
+  id           Int        @id @default(autoinpreenchimento())
+  nome         String
+  descricao    String
+  codigo       Int        @unique // O código do produto deve ser único
+  preco        Decimal
+  quantidade   Int        @default(0) // Representa o estoque atual
+  categoria_id Int
+  created_at   DateTime?
+  updated_at   DateTime?
+
+  categoria categorias @relation(fields: [categoria_id], references: [id])
+  vendas    vendas[]   // Um produto pode estar em várias vendas
+}
+
+model categorias {
+  id         Int       @id @default(autoinpreenchimento())
+  nome       String    @unique // O nome da categoria deve ser único
+  created_at DateTime?
+  updated_at DateTime?
+
+  produtos produtos[] // Uma categoria pode ter vários produtos
+}
+
+model clientes {
+  id         Int       @id @default(autoinpreenchimento())
+  nome       String
+  telefone   String?   // Telefone como String é mais flexível
+  created_at DateTime?
+  updated_at DateTime?
+
+  vendas vendas[]
+}
+
+model vendas {
+  id          Int       @id @default(autoinpreenchimento())
+  cliente_id  Int
+  total_venda Decimal   // Valor total da venda
+  created_at  DateTime? @default(now())
+  updated_at  DateTime?
+
+  cliente         clientes          @relation(fields: [cliente_id], references: [id])
+  itens_vendidos  itens_vendidos[]
+  transacao       transacoes?       // Uma venda gera uma transação (opcional)
+}
+
+// Tabela para os itens dentro de uma venda (relação muitos-para-muitos)
+model itens_vendidos {
+  id           Int @id @default(autoinpreenchimento())
+  venda_id     Int
+  produto_id   Int
+  quantidade   Int
+  preco_unitario Decimal // Preço no momento da venda
+
+  venda   vendas   @relation(fields: [venda_id], references: [id])
+  produto produtos @relation(fields: [produto_id], references: [id])
+}
+
+
+model transacoes {
+  id         Int       @id @default(autoinpreenchimento())
+  descricao  String
+  valor      Decimal
+  tipo       String    // "receita" ou "despesa"
+  data       DateTime  @default(now())
+  venda_id   Int?      @unique // Relaciona a transação a uma venda (se aplicável)
+  created_at DateTime?
+  updated_at DateTime?
+
+  venda vendas? @relation(fields: [venda_id], references: [id])
+}
+
+
+// --- Tabelas Padrão do Laravel (Mantenha como estão) ---
+
+model users {
+  id                Int       @id @default(autoinpreenchimento())
+  name              String
+  email             String    @unique
+  email_verified_at DateTime?
+  password          String
+  remember_token    String?
+  created_at        DateTime?
+  updated_at        DateTime?
+}
+
+model password_reset_tokens {
+  email      String    @id
+  token      String
+  created_at DateTime?
+}
+
+model migrations {
+  id        Int    @id @default(autoinpreenchimento())
+  migration String
+  batch     Int
+}
+
+model failed_jobs {
+  id         Int      @id @default(autoinpreenchimento())
+  uuid       String   @unique
+  connection String
+  queue      String
+  payload    String
+  exception  String
+  failed_at  DateTime @default(now())
+}
+
+model personal_access_tokens {
+  id             Int       @id @default(autoinpreenchimento())
+  tokenable_type String
+  tokenable_id   Int
+  name           String
+  token          String    @unique
+  abilities      String?
+  last_used_at   DateTime?
+  expires_at     DateTime?
+  created_at     DateTime?
+  updated_at     DateTime?
+
+  @@index([tokenable_type, tokenable_id])
+}
+
+model cache {
+  key        String @id
+  value      String
+  expiration Int
+}
+
+model cache_locks {
+  key        String @id
+  owner      String
+  expiration Int
+}
+
+model jobs {
+  id           Int     @id @default(autoinpreenchimento())
+  queue        String
+  payload      String
+  attempts     Int
+  reserved_at  Int?
+  available_at Int
+  created_at   Int
+
+  @@index([queue])
+}
+
+model job_batches {
+  id             String  @id
+  name           String
+  total_jobs     Int
+  pending_jobs   Int
+  failed_jobs    Int
+  failed_job_ids String
+  options        String?
+  cancelled_at   Int?
+  created_at     Int
+  finished_at    Int?
+}
+
+model sessions {
+  id            String  @id
+  user_id       Int?
+  ip_address    String?
+  user_agent    String?
+  payload       String
+  last_activity Int
+
+  @@index([user_id])
+  @@index([last_activity])
+}
