@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Produto;       // <-- ADICIONAMOS ESTA LINHA
+use App\Observers\ProdutoObserver; // <-- ADICIONAMOS ESTA LINHA
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,5 +23,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+        
+        Produto::observe(ProdutoObserver::class); // <-- ADICIONAMOS ESTA LINHA
     }
 }

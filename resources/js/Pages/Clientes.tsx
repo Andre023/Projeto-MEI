@@ -1,7 +1,7 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-import axios from 'axios';
-import './styles.css'; // Importa o CSS unificado
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import React, { useState, useEffect, FormEvent } from "react";
+import axios from "axios";
+import "./styles.css"; // Importa o CSS unificado
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 interface Cliente {
   id: number;
@@ -11,16 +11,16 @@ interface Cliente {
 
 const Clientes: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [nome, setNome] = useState('');
-  const [telefone, setTelefone] = useState('');
+  const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const fetchClientes = async () => {
     try {
-      const response = await axios.get<Cliente[]>('/api/clientes');
+      const response = await axios.get<Cliente[]>("/api/clientes");
       setClientes(response.data);
     } catch (error) {
-      console.error('Erro ao buscar clientes:', error);
+      console.error("Erro ao buscar clientes:", error);
     }
   };
 
@@ -34,14 +34,14 @@ const Clientes: React.FC = () => {
       if (editingId) {
         await axios.put(`/api/clientes/${editingId}`, { nome, telefone });
       } else {
-        await axios.post('/api/clientes', { nome, telefone });
+        await axios.post("/api/clientes", { nome, telefone });
       }
-      setNome('');
-      setTelefone('');
+      setNome("");
+      setTelefone("");
       setEditingId(null);
       fetchClientes();
     } catch (error) {
-      console.error('Erro ao salvar cliente:', error);
+      console.error("Erro ao salvar cliente:", error);
     }
   };
 
@@ -56,13 +56,13 @@ const Clientes: React.FC = () => {
       await axios.delete(`/api/clientes/${id}`);
       fetchClientes();
     } catch (error) {
-      console.error('Erro ao excluir cliente:', error);
+      console.error("Erro ao excluir cliente:", error);
     }
   };
 
   const handleReset = () => {
-    setNome('');
-    setTelefone('');
+    setNome("");
+    setTelefone("");
     setEditingId(null);
   };
 
@@ -84,7 +84,9 @@ const Clientes: React.FC = () => {
             </thead>
             <tbody>
               <tr>
-                <td><label htmlFor="nome">Nome</label></td>
+                <td>
+                  <label htmlFor="nome">Nome</label>
+                </td>
                 <td>
                   <input
                     type="text"
@@ -95,7 +97,9 @@ const Clientes: React.FC = () => {
                 </td>
               </tr>
               <tr>
-                <td><label htmlFor="telefone">Telefone</label></td>
+                <td>
+                  <label htmlFor="telefone">Telefone</label>
+                </td>
                 <td>
                   <input
                     type="text"
@@ -109,7 +113,7 @@ const Clientes: React.FC = () => {
           </table>
           <div className="form-buttons">
             <button type="submit" className="btn-submit">
-              {editingId ? 'Atualizar' : 'Cadastrar'}
+              {editingId ? "Atualizar" : "Cadastrar"}
             </button>
             <button type="button" className="btn-reset" onClick={handleReset}>
               Limpar
@@ -133,10 +137,16 @@ const Clientes: React.FC = () => {
                 <td>{cliente.nome}</td>
                 <td>{cliente.telefone}</td>
                 <td>
-                  <button onClick={() => handleEdit(cliente)} className="edit-btn">
+                  <button
+                    onClick={() => handleEdit(cliente)}
+                    className="edit-btn"
+                  >
                     Editar
                   </button>
-                  <button onClick={() => handleDelete(cliente.id)} className="delete-btn">
+                  <button
+                    onClick={() => handleDelete(cliente.id)}
+                    className="delete-btn"
+                  >
                     Excluir
                   </button>
                 </td>

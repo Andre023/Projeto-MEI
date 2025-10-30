@@ -1,7 +1,7 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-import axios from 'axios';
-import './styles.css'; // Importa o CSS unificado
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import React, { useState, useEffect, FormEvent } from "react";
+import axios from "axios";
+import "./styles.css"; // Importa o CSS unificado
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 
 interface Categoria {
   id: number;
@@ -10,15 +10,15 @@ interface Categoria {
 
 const Categorias: React.FC = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
-  const [categoria, setCategoria] = useState('');
+  const [categoria, setCategoria] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const fetchCategorias = async () => {
     try {
-      const response = await axios.get<Categoria[]>('/api/categorias');
+      const response = await axios.get<Categoria[]>("/api/categorias");
       setCategorias(response.data);
     } catch (error) {
-      console.error('Erro ao buscar categorias:', error);
+      console.error("Erro ao buscar categorias:", error);
     }
   };
 
@@ -32,13 +32,13 @@ const Categorias: React.FC = () => {
       if (editingId) {
         await axios.put(`/api/categorias/${editingId}`, { categoria });
       } else {
-        await axios.post('/api/categorias', { categoria });
+        await axios.post("/api/categorias", { categoria });
       }
-      setCategoria('');
+      setCategoria("");
       setEditingId(null);
       fetchCategorias();
     } catch (error) {
-      console.error('Erro ao salvar categoria:', error);
+      console.error("Erro ao salvar categoria:", error);
     }
   };
 
@@ -52,12 +52,12 @@ const Categorias: React.FC = () => {
       await axios.delete(`/api/categorias/${id}`);
       fetchCategorias();
     } catch (error) {
-      console.error('Erro ao excluir categoria:', error);
+      console.error("Erro ao excluir categoria:", error);
     }
   };
 
   const handleReset = () => {
-    setCategoria('');
+    setCategoria("");
     setEditingId(null);
   };
 
@@ -79,7 +79,9 @@ const Categorias: React.FC = () => {
             </thead>
             <tbody>
               <tr>
-                <td><label htmlFor="nome">Categoria</label></td>
+                <td>
+                  <label htmlFor="nome">Categoria</label>
+                </td>
                 <td>
                   <input
                     type="text"
@@ -93,7 +95,7 @@ const Categorias: React.FC = () => {
           </table>
           <div className="form-buttons">
             <button type="submit" className="btn-submit">
-              {editingId ? 'Atualizar' : 'Cadastrar'}
+              {editingId ? "Atualizar" : "Cadastrar"}
             </button>
             <button type="button" className="btn-reset" onClick={handleReset}>
               Limpar
@@ -115,10 +117,16 @@ const Categorias: React.FC = () => {
                 <td>{categoria.id}</td>
                 <td>{categoria.categoria}</td>
                 <td>
-                  <button onClick={() => handleEdit(categoria)} className="edit-btn">
+                  <button
+                    onClick={() => handleEdit(categoria)}
+                    className="edit-btn"
+                  >
                     Editar
                   </button>
-                  <button onClick={() => handleDelete(categoria.id)} className="delete-btn">
+                  <button
+                    onClick={() => handleDelete(categoria.id)}
+                    className="delete-btn"
+                  >
                     Excluir
                   </button>
                 </td>

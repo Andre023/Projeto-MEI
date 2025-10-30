@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\ProdutoController;
 
 Route::post('produtos/{produto}/movimentar-estoque', [ProdutoController::class, 'movimentarEstoque']);
+Route::get('produtos/{produto}/historico', [ProdutoController::class, 'historico']);
 
 Route::apiResource('clientes', ClienteController::class);
 Route::apiResource('categorias', CategoriaController::class);
