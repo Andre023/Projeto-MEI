@@ -20,6 +20,7 @@ class CreateProdutosTable extends Migration
             $table->string('codigo', 25)->nullable()->unique();
             $table->decimal('preco', 10, 2);
             $table->unsignedBigInteger('categoria_id');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
             $table->foreign('categoria_id')->references('id')->on('categorias');

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -34,10 +36,33 @@ class ProfileController extends Controller
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
         }
-
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        if ($request->hasFile('profile_photo')) {
+            $file = $request->file('profile_photo');
+            $path = null;
+
+            $request->validate([
+                'profile_photo' => ['nullable', 'image', 'max:2048', 'mimes:jpeg,png,jpg,gif,svg'], // Max 2MB, tipos comuns
+            ]);
+
+            if ($request->user()->profile_photo_path) {
+                Storage::disk('public')->delete($request->user()->profile_photo_path);
+            }
+
+            $path = $file->store('profile-photos', 'public');
+            $request->user()->profile_photo_path = $path;
+            $request->user()->save();
+        }
+
+        if ($request->boolean('remove_profile_photo') && $request->user()->profile_photo_path) {
+            Storage::disk('public')->delete($request->user()->profile_photo_path);
+            $request->user()->profile_photo_path = null;
+            $request->user()->save();
+        }
+
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
     /**
@@ -50,6 +75,10 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
 
         Auth::logout();
 

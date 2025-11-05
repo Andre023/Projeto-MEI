@@ -87,13 +87,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Meus Produtos
-                </h2>
-            }
-        >
+        <AuthenticatedLayout>
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Botão de Adicionar Novo Produto */}
@@ -109,14 +103,14 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
 
                     {/* Container da Tabela */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto overflow-y-hidden">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-700">
                                     <tr>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">ID</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">Nome</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">Código</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-1S00 uppercase tracking-wider">Preço</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">Preço</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">Estoque</th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">Categoria</th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-100 uppercase tracking-wider">Ações</th>

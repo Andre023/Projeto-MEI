@@ -3,6 +3,8 @@ export interface User {
   name: string;
   email: string;
   email_verified_at?: string;
+  profile_photo_path: string | null;
+  profile_photo_url: string | null;
 }
 
 export type PageProps<
@@ -13,8 +15,6 @@ export type PageProps<
   };
 };
 
-// --- ADICIONE ESTAS DUAS INTERFACES ABAIXO ---
-
 /**
  * Define a estrutura de uma Categoria
  */
@@ -23,7 +23,6 @@ export interface Categoria {
     categoria: string;
 }
 
-
 export interface Produto {
     id: number;
     nome: string;
@@ -31,7 +30,7 @@ export interface Produto {
     codigo: string;
     preco: number;
     categoria_id: number;
-    categoria?: Categoria; // Categoria é opcional (vem do 'with')
+    categoria?: Categoria;
     quantidade_estoque?: number;
 }
 

@@ -3,15 +3,7 @@ import { Head } from "@inertiajs/react";
 
 export default function Dashboard() {
   return (
-    <AuthenticatedLayout
-      header={
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold leading-tight text-gray-800">
-            Dashboard
-          </h2>
-        </div>
-      }
-    >
+    <AuthenticatedLayout>
       <Head title="Dashboard" />
 
       <div className="py-12">

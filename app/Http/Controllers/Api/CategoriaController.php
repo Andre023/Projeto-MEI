@@ -18,14 +18,14 @@ class CategoriaController extends Controller
         $data = $request->validate([
             'categoria' => 'required|string|max:20',
         ]);
-
-        $categoria = Categoria::create($data);
+        
+        $categoria = Categoria::create($data); 
         return response()->json($categoria, 201);
     }
 
     public function show($id)
     {
-        $categoria = Categoria::findOrFail($id);
+        $categoria = Categoria::findOrFail($id); 
         return response()->json($categoria);
     }
 

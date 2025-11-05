@@ -3,13 +3,16 @@ import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
+import { User } from '@/types';
 import { PropsWithChildren, ReactNode, useState } from "react";
 
 export default function Authenticated({
   header,
   children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-  const user = usePage().props.auth.user;
+
+  // Corrigido para tipar o 'user' corretamente
+  const { user } = usePage().props.auth as { user: User };
 
   const [showingNavigationDropdown, setShowingNavigationDropdown] =
     useState(false);
@@ -63,6 +66,23 @@ export default function Authenticated({
                         type="button"
                         className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                       >
+                        {/* --- INÍCIO DA LÓGICA DA FOTO --- */}
+                        {user.profile_photo_url ? (
+                          <img
+                            src={user.profile_photo_url}
+                            alt="Foto de Perfil"
+                            className="h-10 w-10 rounded-full object-cover me-2"
+                          />
+                        ) : (
+                          // Placeholder
+                          <span className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center me-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-500">
+                              <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.78 6.125-2.095a1.23 1.23 0 00.41-1.412A9.99 9.99 0 0010 13c-2.31 0-4.438.78-6.125 2.095z" />
+                            </svg>
+                          </span>
+                        )}
+                        {/* --- FIM DA LÓGICA DA FOTO --- */}
+
                         {user.name}
 
                         <svg
@@ -83,14 +103,14 @@ export default function Authenticated({
 
                   <Dropdown.Content>
                     <Dropdown.Link href={route("profile.edit")}>
-                      Profile
+                      Perfil
                     </Dropdown.Link>
                     <Dropdown.Link
                       href={route("logout")}
                       method="post"
                       as="button"
                     >
-                      Log Out
+                      Sair
                     </Dropdown.Link>
                   </Dropdown.Content>
                 </Dropdown>
@@ -149,28 +169,69 @@ export default function Authenticated({
             >
               Dashboard
             </ResponsiveNavLink>
+            {/* --- ADICIONADO LINKS FALTANTES --- */}
+            <ResponsiveNavLink
+              href={route("clientes")}
+              active={route().current("clientes")}
+            >
+              Clientes
+            </ResponsiveNavLink>
+            <ResponsiveNavLink
+              href={route("categorias")}
+              active={route().current("categorias")}
+            >
+              Categorias
+            </ResponsiveNavLink>
+            <ResponsiveNavLink
+              href={route("produtos")}
+              active={route().current("produtos")}
+            >
+              Produtos
+            </ResponsiveNavLink>
           </div>
 
           <div className="border-t border-gray-200 pb-1 pt-4">
-            <div className="px-4">
-              <div className="text-base font-medium text-gray-800">
-                {user.name}
+            {/* --- INÍCIO LÓGICA FOTO MOBILE --- */}
+            <div className="px-4 flex items-center">
+              <div className="shrink-0 me-3">
+                {user.profile_photo_url ? (
+                  <img
+                    src={user.profile_photo_url}
+                    alt="Foto de Perfil"
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  // Placeholder
+                  <span className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6 text-gray-500">
+                      <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.78 6.125-2.095a1.23 1.23 0 00.41-1.412A9.99 9.99 0 0010 13c-2.31 0-4.438.78-6.125 2.095z" />
+                    </svg>
+                  </span>
+                )}
               </div>
-              <div className="text-sm font-medium text-gray-500">
-                {user.email}
+
+              <div>
+                <div className="text-base font-medium text-gray-800">
+                  {user.name}
+                </div>
+                <div className="text-sm font-medium text-gray-500">
+                  {user.email}
+                </div>
               </div>
             </div>
+            {/* --- FIM LÓGICA FOTO MOBILE --- */}
+
 
             <div className="mt-3 space-y-1">
               <ResponsiveNavLink href={route("profile.edit")}>
-                Profile
+                Perfil
               </ResponsiveNavLink>
               <ResponsiveNavLink
                 method="post"
                 href={route("logout")}
                 as="button"
               >
-                Log Out
+                Sair
               </ResponsiveNavLink>
             </div>
           </div>
