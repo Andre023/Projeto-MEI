@@ -4,30 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCategoriasTable extends Migration
+class CreateGruposTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
-        Schema::create('categorias', function (Blueprint $table) {
+        Schema::create('grupos', function (Blueprint $table) {
             $table->id();
-            $table->string('categoria');
+            $table->string('nome', 100);
+            $table->foreignId('subcategoria_id')->constrained()->onDelete('cascade'); // Link para a tabela 'pai'
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        Schema::dropIfExists('categorias');
+        Schema::dropIfExists('grupos');
     }
 }

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { User, Produto, Categoria } from "@/types";
+import { User, Produto, CategoriaArvore } from "@/types";
 import EstoqueModal from "@/Pages/Produtos/EstoqueModal";
 import ProdutoFormModal from "@/Pages/Produtos/ProdutoFormModal";
 import HistoricoModal from "@/Pages/Produtos/HistoricoModal";
-import { Plus, Edit, Trash2, Box, ScrollText, ChevronUp, ChevronDown, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Box, ScrollText, ChevronUp, ChevronDown, Search, Filter, X } from "lucide-react";
 
 interface ProdutosPageProps {
     auth: {
@@ -13,9 +13,21 @@ interface ProdutosPageProps {
     };
 }
 
+const formatSubgrupoPath = (produto: Produto): string => {
+    if (!produto.subgrupo) return "N/A";
+
+    const s = produto.subgrupo;
+    const g = s.grupo;
+    const sb = g?.subcategoria;
+    const c = sb?.categoria;
+
+    let path = [c?.nome, sb?.nome, g?.nome, s.nome].filter(Boolean).join(' > ');
+    return path || "N/A";
+}
+
 const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     const [produtos, setProdutos] = useState<Produto[]>([]);
-    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [arvore, setArvore] = useState<CategoriaArvore[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Produto | null; direction: "asc" | "desc" }>({
         key: null,
         direction: "asc",
@@ -27,9 +39,23 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     const [isEstoqueModalOpen, setIsEstoqueModalOpen] = useState(false);
     const [isProdutoModalOpen, setIsProdutoModalOpen] = useState(false);
     const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
+    const [isFilterBarOpen, setIsFilterBarOpen] = useState(false);
     const [produtoEstoque, setProdutoEstoque] = useState<Produto | null>(null);
     const [produtoEdicao, setProdutoEdicao] = useState<Produto | null>(null);
     const [produtoHistorico, setProdutoHistorico] = useState<Produto | null>(null);
+
+    // Filtros da Árvore
+    const [selectedCategoriaId, setSelectedCategoriaId] = useState<string>("");
+    const [selectedSubcategoriaId, setSelectedSubcategoriaId] = useState<string>("");
+    const [selectedGrupoId, setSelectedGrupoId] = useState<string>("");
+    const [selectedSubgrupoId, setSelectedSubgrupoId] = useState<string>("");
+
+    // Filtro de Estoque
+    const [mostrarEstoquePositivo, setMostrarEstoquePositivo] = useState(false);
+
+    // Filtros de Preço
+    const [precoMin, setPrecoMin] = useState("");
+    const [precoMax, setPrecoMax] = useState("");
 
     // Estados de paginação (Corretos)
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +67,25 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         setCurrentPage(1);
     };
 
+    // --- LÓGICA DOS FILTROS DA ÁRVORE (CASCADING) ---
+    const subcategoriaOptions = useMemo(() => {
+        if (!selectedCategoriaId) return [];
+        const cat = arvore.find(c => c.id === Number(selectedCategoriaId));
+        return cat?.subcategorias || [];
+    }, [selectedCategoriaId, arvore]);
+
+    const grupoOptions = useMemo(() => {
+        if (!selectedSubcategoriaId) return [];
+        const sub = subcategoriaOptions.find(s => s.id === Number(selectedSubcategoriaId));
+        return sub?.grupos || [];
+    }, [selectedSubcategoriaId, subcategoriaOptions]);
+
+    const subgrupoOptions = useMemo(() => {
+        if (!selectedGrupoId) return [];
+        const grp = grupoOptions.find(g => g.id === Number(selectedGrupoId));
+        return grp?.subgrupos || [];
+    }, [selectedGrupoId, grupoOptions]);
+
     const fetchProdutos = async () => {
         try {
             const response = await axios.get("/api/produtos");
@@ -50,23 +95,53 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         }
     };
 
-    const fetchCategorias = async () => {
+    const fetchArvore = async () => {
         try {
-            const response = await axios.get("/api/categorias");
-            setCategorias(response.data);
+            const response = await axios.get("/api/arvore");
+            setArvore(response.data);
         } catch (error) {
-            console.error("Erro ao buscar categorias:", error);
+            console.error("Erro ao buscar árvore:", error);
         }
     };
 
     useEffect(() => {
         fetchProdutos();
-        fetchCategorias();
+        fetchArvore();
     }, []);
 
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm]);
+
+    const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCategoriaId(e.target.value);
+        setSelectedSubcategoriaId("");
+        setSelectedGrupoId("");
+        setSelectedSubgrupoId("");
+    };
+
+    const handleSubcategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedSubcategoriaId(e.target.value);
+        setSelectedGrupoId("");
+        setSelectedSubgrupoId("");
+    };
+
+    const handleGrupoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedGrupoId(e.target.value);
+        setSelectedSubgrupoId("");
+    };
+
+    const handleResetFilters = () => {
+        setSelectedCategoriaId("");
+        setSelectedSubcategoriaId("");
+        setSelectedGrupoId("");
+        setSelectedSubgrupoId("");
+        setPrecoMin("");
+        setPrecoMax("");
+        setMostrarEstoquePositivo(false);
+        setSearchTerm("");
+        setIsFilterBarOpen(false);
+    };
 
     const handleDelete = async (id: number) => {
         if (!window.confirm("Tem certeza que deseja excluir este produto?")) return;
@@ -86,17 +161,65 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         setSortConfig({ key, direction });
     };
 
-    const filteredProdutos = produtos.filter((produto) => {
+    const searchedProdutos = produtos.filter((produto) => {
         const termo = searchTerm.toLowerCase();
         return (
             produto.nome?.toLowerCase().includes(termo) ||
             produto.codigo?.toLowerCase().includes(termo) ||
-            produto.id.toString().includes(termo)
+            produto.id.toString().includes(termo) ||
+            formatSubgrupoPath(produto).toLowerCase().includes(termo)
         );
     });
 
+    const advancedFilteredProdutos = useMemo(() => {
+        const pMin = precoMin ? parseFloat(precoMin) : null;
+        const pMax = precoMax ? parseFloat(precoMax) : null;
+
+        return searchedProdutos.filter(produto => {
+            if (mostrarEstoquePositivo && (produto.quantidade_estoque ?? 0) <= 0) {
+                return false;
+            }
+
+            if (pMin !== null && produto.preco < pMin) {
+                return false;
+            }
+            if (pMax !== null && produto.preco > pMax) {
+                return false;
+            }
+
+            const prodCatId = produto.subgrupo?.grupo?.subcategoria?.categoria?.id;
+            const prodSubId = produto.subgrupo?.grupo?.subcategoria?.id;
+            const prodGrpId = produto.subgrupo?.grupo?.id;
+            const prodSubGrpId = produto.subgrupo?.id;
+
+            if (selectedCategoriaId && prodCatId !== Number(selectedCategoriaId)) {
+                return false;
+            }
+            if (selectedSubcategoriaId && prodSubId !== Number(selectedSubcategoriaId)) {
+                return false;
+            }
+            if (selectedGrupoId && prodGrpId !== Number(selectedGrupoId)) {
+                return false;
+            }
+            if (selectedSubgrupoId && prodSubGrpId !== Number(selectedSubgrupoId)) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [
+        searchedProdutos,
+        selectedCategoriaId,
+        selectedSubcategoriaId,
+        selectedGrupoId,
+        selectedSubgrupoId,
+        precoMin,
+        precoMax,
+        mostrarEstoquePositivo
+    ]);
+
     const sortedProdutos = React.useMemo(() => {
-        const sorted = [...filteredProdutos];
+        const sorted = [...advancedFilteredProdutos];
         if (sortConfig.key !== null) {
             const key = sortConfig.key as keyof Produto;
             sorted.sort((a, b) => {
@@ -114,7 +237,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
             });
         }
         return sorted;
-    }, [filteredProdutos, sortConfig]);
+    }, [advancedFilteredProdutos, sortConfig]);
 
     const totalItems = sortedProdutos.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -150,17 +273,165 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                 className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
-                        <button
-                            onClick={() => {
-                                setProdutoEdicao(null);
-                                setIsProdutoModalOpen(true);
-                            }}
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                        >
-                            <Plus size={16} className="mr-2" />
-                            Novo Produto
-                        </button>
+                        <div className="flex items-center gap-3">
+                            {/* --- BOTÃO DE FILTRO (ADICIONADO) --- */}
+                            <button
+                                onClick={() => setIsFilterBarOpen(!isFilterBarOpen)}
+                                className={`inline-flex items-center px-4 py-2 border rounded-md font-semibold text-xs uppercase tracking-widest transition ease-in-out duration-150
+                                ${isFilterBarOpen
+                                        ? 'bg-gray-700 text-white border-gray-700'
+                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <Filter size={16} className="mr-2" />
+                                Filtros
+                            </button>
+
+                            {/* BOTÃO NOVO PRODUTO */}
+                            <button
+                                onClick={() => {
+                                    setProdutoEdicao(null);
+                                    setIsProdutoModalOpen(true);
+                                }}
+                                className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            >
+                                <Plus size={16} className="mr-2" />
+                                Novo Produto
+                            </button>
+                        </div>
                     </div>
+                    {/* --- BARRA DE FILTROS AVANÇADOS --- */}
+                    <div className={`
+                        transition-all duration-300 ease-in-out overflow-hidden 
+                        ${isFilterBarOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
+                    `}>
+                        <div className="p-4 bg-white shadow-sm sm:rounded-lg space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {/* Coluna 1: Categoria e Subcategoria */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="filtro_cat" className="block text-sm font-medium text-gray-700">Categoria</label>
+                                        <select
+                                            id="filtro_cat"
+                                            value={selectedCategoriaId}
+                                            onChange={handleCategoriaChange}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        >
+                                            <option value="">Todas as Categorias</option>
+                                            {arvore.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="filtro_sub" className="block text-sm font-medium text-gray-700">Subcategoria</label>
+                                        <select
+                                            id="filtro_sub"
+                                            value={selectedSubcategoriaId}
+                                            onChange={handleSubcategoriaChange}
+                                            disabled={!selectedCategoriaId || subcategoriaOptions.length === 0}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-100"
+                                        >
+                                            <option value="">Todas as Subcategorias</option>
+                                            {subcategoriaOptions.map(sub => (
+                                                <option key={sub.id} value={sub.id}>{sub.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Coluna 2: Grupo e Subgrupo */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="filtro_grp" className="block text-sm font-medium text-gray-700">Grupo</label>
+                                        <select
+                                            id="filtro_grp"
+                                            value={selectedGrupoId}
+                                            onChange={handleGrupoChange}
+                                            disabled={!selectedSubcategoriaId || grupoOptions.length === 0}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-100"
+                                        >
+                                            <option value="">Todos os Grupos</option>
+                                            {grupoOptions.map(grp => (
+                                                <option key={grp.id} value={grp.id}>{grp.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="filtro_subgrp" className="block text-sm font-medium text-gray-700">Subgrupo</label>
+                                        <select
+                                            id="filtro_subgrp"
+                                            value={selectedSubgrupoId}
+                                            onChange={(e) => setSelectedSubgrupoId(e.target.value)}
+                                            disabled={!selectedGrupoId || subgrupoOptions.length === 0}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm disabled:bg-gray-100"
+                                        >
+                                            <option value="">Todos os Subgrupos</option>
+                                            {subgrupoOptions.map(subgrp => (
+                                                <option key={subgrp.id} value={subgrp.id}>{subgrp.nome}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Coluna 3: Preço */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="filtro_preco_min" className="block text-sm font-medium text-gray-700">Preço (Mín)</label>
+                                        <input
+                                            type="number"
+                                            id="filtro_preco_min"
+                                            value={precoMin}
+                                            onChange={(e) => setPrecoMin(e.target.value)}
+                                            placeholder="R$ 0,00"
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="filtro_preco_max" className="block text-sm font-medium text-gray-700">Preço (Máx)</label>
+                                        <input
+                                            type="number"
+                                            id="filtro_preco_max"
+                                            value={precoMax}
+                                            onChange={(e) => setPrecoMax(e.target.value)}
+                                            placeholder="R$ 1.000,00"
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Coluna 4: Outros e Ações */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Outros</label>
+                                        <div className="mt-2 flex items-center">
+                                            <input
+                                                id="filtro_estoque"
+                                                type="checkbox"
+                                                checked={mostrarEstoquePositivo}
+                                                onChange={(e) => setMostrarEstoquePositivo(e.target.checked)}
+                                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                            />
+                                            <label htmlFor="filtro_estoque" className="ml-2 block text-sm text-gray-900">
+                                                Mostrar apenas com estoque positivo
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-5 flex justify-end">
+                                        <button
+                                            onClick={handleResetFilters}
+                                            className="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:bg-red-700 active:bg-red-800"
+                                        >
+                                            <X size={16} className="mr-2" />
+                                            Limpar Filtros
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {/* --- FIM DA BARRA DE FILTROS AVANÇADOS --- */}
 
                     {/* Tabela */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -168,41 +439,41 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-700">
                                     <tr>
-                                        <th onClick={() => handleSort("id")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        <th onClick={() => handleSort("id")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
                                             ID {getSortIcon("id")}
                                         </th>
-                                        <th onClick={() => handleSort("nome")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        <th onClick={() => handleSort("nome")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
                                             Nome {getSortIcon("nome")}
                                         </th>
-                                        <th onClick={() => handleSort("codigo")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        <th onClick={() => handleSort("codigo")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
                                             Código {getSortIcon("codigo")}
                                         </th>
-                                        <th onClick={() => handleSort("preco")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        <th onClick={() => handleSort("preco")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
                                             Preço {getSortIcon("preco")}
                                         </th>
-                                        <th onClick={() => handleSort("quantidade_estoque")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        <th onClick={() => handleSort("quantidade_estoque")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
                                             Estoque {getSortIcon("quantidade_estoque")}
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider">
-                                            Categoria
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider max-w-xs">
+                                            Árvore mercadológica
                                         </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-100 uppercase tracking-wider">Ações</th>
+                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {paginatedProdutos.map((produto) => (
                                         <tr key={produto.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{produto.id}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{produto.nome}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{produto.codigo || "N/A"}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{produto.id}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{produto.nome}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{produto.codigo || "N/A"}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                                 {produto.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">{produto.quantidade_estoque ?? 0}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {produto.categoria ? produto.categoria.categoria : "N/A"}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold text-center">{produto.quantidade_estoque ?? 0}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate text-center" title={formatSubgrupoPath(produto)}>
+                                                {formatSubgrupoPath(produto)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                                                 <button
                                                     onClick={() => {
                                                         setProdutoHistorico(produto);
@@ -325,7 +596,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                 isOpen={isProdutoModalOpen}
                 onClose={() => setIsProdutoModalOpen(false)}
                 produto={produtoEdicao}
-                categorias={categorias}
+                arvore={arvore}
                 onSuccess={() => {
                     setIsProdutoModalOpen(false);
                     fetchProdutos();
@@ -336,7 +607,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                 onClose={() => setIsHistoricoModalOpen(false)}
                 produto={produtoHistorico}
             />
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 };
 

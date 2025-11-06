@@ -9,23 +9,19 @@ use App\Services\EstoqueService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 use Exception;
-// --- ADICIONE ESTES IMPORTS ---
 use App\Models\AuditoriaProduto;
 use App\Models\MovimentacaoEstoque;
-use Illuminate\Support\Facades\Auth; // <--- ADICIONE ESTE
+use Illuminate\Support\Facades\Auth;
 
 class ProdutoController extends Controller
 {
-    public function __construct(private EstoqueService $estoqueService)
-    {
-    }
+    public function __construct(private EstoqueService $estoqueService) {}
 
     public function index(): JsonResponse
     {
-        // Apenas produtos do usuário autenticado
         return response()->json(
-            Produto::with('categoria')
-                ->where('user_id', Auth::id()) // <--- ADICIONADO
+            Produto::with('subgrupo.grupo.subcategoria.categoria')
+                ->where('user_id', Auth::id())
                 ->get()
         );
     }
@@ -35,7 +31,6 @@ class ProdutoController extends Controller
         $dadosValidados = $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string|max:500',
-            // Corrigido para verificar unicidade do código APENAS para o user_id
             'codigo' => [
                 'nullable',
                 'string',
@@ -44,23 +39,18 @@ class ProdutoController extends Controller
                     return $query->where('user_id', Auth::id());
                 }),
             ],
-            'categoria_id' => 'required|exists:categorias,id', // Você também pode querer filtrar isso
+            'subgrupo_id' => 'required|exists:subgrupos,id',
             'preco' => 'required|numeric|min:0',
             'quantidade_estoque' => 'nullable|integer|min:0',
         ]);
 
-        // Atribui o ID do usuário logado ao dado antes de criar
-        $dadosValidados['user_id'] = Auth::id(); // <--- ADICIONADO
+        $dadosValidados['user_id'] = Auth::id();
 
-        // --- Resto do método 'store' permanece o mesmo ---
-        // 1. Guardar a quantidade inicial e removê-la dos dados de criação
         $estoqueInicial = $dadosValidados['quantidade_estoque'] ?? 0;
         unset($dadosValidados['quantidade_estoque']);
 
-        // 2. Criar o produto
         $produto = Produto::create($dadosValidados);
 
-        // 3. Se foi informada uma quantidade inicial, registar no histórico
         if ($estoqueInicial > 0) {
             try {
                 $this->estoqueService->movimentarEstoque(
@@ -73,35 +63,28 @@ class ProdutoController extends Controller
                 report($e);
             }
         }
-        
-        // 4. Recarregar o produto
-        $produto->refresh()->load('categoria');
-        // --- FIM DA CORREÇÃO ---
+
+        $produto->refresh()->load('subgrupo.grupo.subcategoria.categoria');
 
         return response()->json($produto, 201);
     }
-    
-    // Altera a assinatura de Produto $produto para $id
-    public function show($id): JsonResponse // <--- ALTERADA A ASSINATURA
+
+    public function show($id): JsonResponse
     {
-        // Busca o produto pelo ID, mas restrito ao usuário autenticado
         $produto = Produto::where('user_id', Auth::id())
-            ->with('categoria', 'movimentacoes')
-            ->findOrFail($id); // <--- ALTERADO
-            
+            ->with('subgrupo.grupo.subcategoria.categoria', 'movimentacoes')
+            ->findOrFail($id);
+
         return response()->json($produto);
     }
 
-    // Altera a assinatura de Produto $produto para $id
-    public function update(Request $request, $id): JsonResponse // <--- ALTERADA A ASSINATURA
+    public function update(Request $request, $id): JsonResponse
     {
-        // Busca o produto pelo ID, mas restrito ao usuário autenticado
-        $produto = Produto::where('user_id', Auth::id())->findOrFail($id); // <--- ADICIONADO
+        $produto = Produto::where('user_id', Auth::id())->findOrFail($id);
 
         $dadosValidados = $request->validate([
             'nome' => 'sometimes|string|max:255',
             'descricao' => 'nullable|string|max:500',
-            // Corrigido para verificar unicidade do código APENAS para o user_id e ignorando o produto atual
             'codigo' => [
                 'sometimes',
                 'nullable',
@@ -113,30 +96,26 @@ class ProdutoController extends Controller
                         return $query->where('user_id', Auth::id());
                     })
             ],
-            'categoria_id' => 'sometimes|exists:categorias,id', // Você pode querer filtrar isso também
+            'subgrupo_id' => 'sometimes|exists:subgrupos,id',
             'preco' => 'sometimes|numeric|min:0',
             'quantidade_estoque' => 'prohibited',
         ]);
 
         $produto->update($dadosValidados);
-        return response()->json($produto->load('categoria'));
+        return response()->json($produto->load('subgrupo.grupo.subcategoria.categoria'));
     }
 
-    // Altera a assinatura de Produto $produto para $id
-    public function destroy($id): JsonResponse // <--- ALTERADA A ASSINATURA
+    public function destroy($id): JsonResponse
     {
-        // Busca o produto pelo ID, mas restrito ao usuário autenticado
-        $produto = Produto::where('user_id', Auth::id())->findOrFail($id); // <--- ADICIONADO
+        $produto = Produto::where('user_id', Auth::id())->findOrFail($id);
         $produto->delete();
         return response()->json(null, 204);
     }
 
-    // Altera a assinatura de Produto $produto para $id
-    public function movimentarEstoque(Request $request, $id): JsonResponse // <--- ALTERADA A ASSINATURA
+    public function movimentarEstoque(Request $request, $id): JsonResponse
     {
-        // Busca o produto pelo ID, mas restrito ao usuário autenticado
-        $produto = Produto::where('user_id', Auth::id())->findOrFail($id); // <--- ADICIONADO
-        
+        $produto = Produto::where('user_id', Auth::id())->findOrFail($id);
+
         $dadosValidados = $request->validate([
             'quantidade' => 'required|integer|min:1',
             'tipo' => ['required', Rule::in(['entrada', 'saida'])],
@@ -150,27 +129,19 @@ class ProdutoController extends Controller
                 $dadosValidados['quantidade'],
                 $dadosValidados['descricao'] ?? null
             );
-            
+
             return response()->json(
                 $produtoAtualizado->load('movimentacoes')
             );
-
         } catch (Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 
-
-    /**
-     * Busca o histórico unificado de um produto.
-     */
-    // Altera a assinatura de Produto $produto para $id
-    public function historico($id): JsonResponse // <--- ALTERADA A ASSINATURA
+    public function historico($id): JsonResponse
     {
-        // Busca o produto pelo ID, mas restrito ao usuário autenticado
-        $produto = Produto::where('user_id', Auth::id())->findOrFail($id); // <--- ADICIONADO
-        
-        // 1. Busca o histórico de estoque (usando sua relação 'movimentacoes')
+        $produto = Produto::where('user_id', Auth::id())->findOrFail($id);
+
         $movimentacoes = $produto->movimentacoes()
             ->select('id', 'tipo', 'quantidade', 'descricao', 'created_at')
             ->orderBy('created_at', 'desc')
@@ -183,7 +154,7 @@ class ProdutoController extends Controller
                 }
 
                 return [
-                    'id' => 'est-' . $mov->id, // ID único
+                    'id' => 'est-' . $mov->id,
                     'data' => $mov->created_at,
                     'tipo' => 'Estoque',
                     'descricao' => $desc,
@@ -191,7 +162,6 @@ class ProdutoController extends Controller
                 ];
             });
 
-        // 2. Busca o histórico de alterações (auditoria)
         $alteracoes = $produto->auditorias()
             ->select('id', 'campo_alterado', 'valor_antigo', 'valor_novo', 'created_at')
             ->orderBy('created_at', 'desc')
@@ -206,10 +176,9 @@ class ProdutoController extends Controller
                 ];
             });
 
-        // 3. Junta as duas coleções e ordena pela data
         $historico = $movimentacoes->merge($alteracoes)
-                                ->sortByDesc('data') // Ordena pela data de criação
-                                ->values(); // Reseta as chaves do array
+            ->sortByDesc('data')
+            ->values();
 
         return response()->json($historico);
     }

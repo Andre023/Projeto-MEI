@@ -43,10 +43,10 @@ export default function Authenticated({
                   Clientes
                 </NavLink>
                 <NavLink
-                  href={route("categorias")}
-                  active={route().current("categorias")}
+                  href={route("arvore")}
+                  active={route().current("arvore")}
                 >
-                  Categorias
+                  Arvores
                 </NavLink>
                 <NavLink
                   href={route("produtos")}
@@ -177,10 +177,10 @@ export default function Authenticated({
               Clientes
             </ResponsiveNavLink>
             <ResponsiveNavLink
-              href={route("categorias")}
-              active={route().current("categorias")}
+              href={route("arvore")}
+              active={route().current("arvore")}
             >
-              Categorias
+              Árvore
             </ResponsiveNavLink>
             <ResponsiveNavLink
               href={route("produtos")}

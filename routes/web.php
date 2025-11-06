@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 // --- 1. IMPORTE OS CONTROLLERS DA API CORRETAMENTE ---
-use App\Http\Controllers\Api\CategoriaController; // <-- Corrigido
+use App\Http\Controllers\Api\ArvoreController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\ProdutoController;
 
@@ -32,9 +32,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Clientes');
     })->name('clientes');
 
-    Route::get('/categorias', function () {
-        return Inertia::render('Categorias');
-    })->name('categorias');
+    Route::get('/arvore', function () {
+        return Inertia::render('Arvore');
+    })->name('arvore');
 
     Route::get('/produtos', function () {
         return Inertia::render('Produtos');
@@ -48,13 +48,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- 3. ADICIONE AS ROTAS DA API AQUI DENTRO ---
     // (Isto fará com que o Auth::check() funcione para elas)
     Route::prefix('api')->group(function () {
-        Route::apiResource('categorias', CategoriaController::class);
         Route::apiResource('clientes', ClienteController::class);
 
         // Rotas de Produto
         Route::post('produtos/{produto}/estoque', [ProdutoController::class, 'movimentarEstoque']);
         Route::get('produtos/{produto}/historico', [ProdutoController::class, 'historico']);
         Route::apiResource('produtos', ProdutoController::class);
+
+        // Rotas da Árvore de Categorias
+        Route::get('arvore', [ArvoreController::class, 'index']);
+        Route::post('arvore', [ArvoreController::class, 'store']);
+        Route::put('arvore/{id}', [ArvoreController::class, 'update']);
+        Route::delete('arvore/{id}', [ArvoreController::class, 'destroy']);
     });
 }); // --- FIM DO GRUPO 'auth' ---
 

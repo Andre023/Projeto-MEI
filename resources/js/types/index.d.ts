@@ -15,13 +15,32 @@ export type PageProps<
   };
 };
 
-/**
- * Define a estrutura de uma Categoria
- */
-export interface Categoria {
-    id: number;
-    categoria: string;
+export interface Subgrupo {
+  id: number;
+  nome: string;
+  grupo?: Grupo;
 }
+
+export interface Grupo {
+  id: number;
+  nome: string;
+  subcategoria?: Subcategoria;
+  subgrupos?: Subgrupo[];
+}
+
+export interface Subcategoria {
+  id: number;
+  nome: string;
+  categoria?: CategoriaArvore;
+  grupos?: Grupo[];
+}
+
+export interface CategoriaArvore {
+  id: number;
+  nome: string;
+  subcategorias?: Subcategoria[];
+}
+
 
 export interface Produto {
     id: number;
@@ -29,8 +48,17 @@ export interface Produto {
     descricao: string;
     codigo: string;
     preco: number;
-    categoria_id: number;
-    categoria?: Categoria;
     quantidade_estoque?: number;
+
+    subgrupo_id: number;
+    subgrupo?: Subgrupo;
 }
 
+export interface Cliente {
+  id: number;
+  nome: string;
+  cpf_cnpj: string;
+  endereco: string;
+  telefone: string;
+  email: string;
+}

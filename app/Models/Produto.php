@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +17,7 @@ class Produto extends Model
         'descricao',
         'preco',
         'codigo',
-        'categoria_id',
+        'subgrupo_id',
         'quantidade_estoque',
         'user_id',
     ];
@@ -38,22 +37,13 @@ class Produto extends Model
         });
     }
 
-    /*
-    O método static function creating() separado que você tinha 
-    deve ser REMOVIDO, pois ele já está dentro do booted().
-    */
-
-    /**
-     * Define o relacionamento: um produto pertence a uma categoria.
-     */
-    public function categoria(): BelongsTo
+    public function subgrupo()
     {
-        return $this->belongsTo(Categoria::class);
+        return $this->belongsTo(Subgrupo::class);
     }
 
     /**
      * Define o relacionamento: um produto tem muitas movimentações de estoque.
-     * (Mantendo o nome 'movimentacoes' como está no seu arquivo)
      */
     public function movimentacoes(): HasMany
     {

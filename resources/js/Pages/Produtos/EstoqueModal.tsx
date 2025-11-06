@@ -1,87 +1,67 @@
 import React, { useState, FormEvent, useEffect } from "react";
 import axios from "axios";
-import Modal from "@/Components/Modal"; // Caminho corrigido com '@'
-import InputLabel from "@/Components/InputLabel"; // Caminho corrigido com '@'
-import TextInput from "@/Components/TextInput"; // Caminho corrigido com '@'
-import SecondaryButton from "@/Components/SecondaryButton"; // Caminho corrigido com '@'
-import PrimaryButton from "@/Components/PrimaryButton"; // Caminho corrigido com '@'
-import InputError from "@/Components/InputError"; // Caminho corrigido com '@'
-
-// Definindo a interface do Produto (pode ser movida para ../types)
-interface Produto {
-  id: number;
-  nome: string;
-  descricao: string;
-  codigo: string;
-  preco: number;
-  categoria_id: number;
-  categoria?: any;
-  quantidade_estoque?: number;
-}
+import Modal from "@/Components/Modal";
+import InputLabel from "@/Components/InputLabel";
+import TextInput from "@/Components/TextInput";
+import InputError from "@/Components/InputError";
+import PrimaryButton from "@/Components/PrimaryButton";
+import SecondaryButton from "@/Components/SecondaryButton";
+import { Produto } from "@/types";
 
 interface EstoqueModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
   produto: Produto | null;
-  onSuccess: () => void; // Função para ser chamada após o sucesso (ex: recarregar lista)
 }
 
 export default function EstoqueModal({
   isOpen,
   onClose,
-  produto,
   onSuccess,
+  produto,
 }: EstoqueModalProps) {
-  // Estado do formulário do modal
-  const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
-  const [quantidade, setQuantidade] = useState<string>("");
-  const [descricao, setDescricao] = useState<string>("");
-  const [processing, setProcessing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // Limpa o formulário quando o modal é fechado ou o produto muda
+  const [tipo, setTipo] = useState<"entrada" | "saida">("entrada");
+  const [quantidade, setQuantidade] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+  const [processing, setProcessing] = useState(false);
+  const [errors, setErrors] = useState<any>({});
+
   useEffect(() => {
     if (isOpen) {
       setTipo("entrada");
       setQuantidade("");
       setDescricao("");
-      setError(null);
-      setProcessing(false);
+      setErrors({});
     }
   }, [isOpen]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!produto || processing) return;
-
-    const qtdNumero = Number(quantidade);
-    if (qtdNumero <= 0) {
-      setError("A quantidade deve ser maior que zero.");
-      return;
-    }
+    if (!produto) return;
 
     setProcessing(true);
-    setError(null);
+    setErrors({});
 
     try {
-      // Chamada para a API que já criamos
-      await axios.post(`/api/produtos/${produto.id}/movimentar-estoque`, {
+      const payload = {
         tipo,
-        quantidade: qtdNumero,
-        descricao:
-          descricao || (tipo === "entrada" ? "Entrada manual" : "Saída manual"),
-      });
+        quantidade: Number(quantidade),
+        descricao: descricao || null,
+      };
 
-      onSuccess(); // Recarrega a lista de produtos na página principal
-      onClose(); // Fecha o modal
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        // Captura a mensagem de erro do backend (ex: "Estoque insuficiente")
-        setError(err.response.data.message || "Ocorreu um erro.");
+      await axios.post(`/api/produtos/${produto.id}/estoque`, payload);
+      onSuccess();
+
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 422) {
+        setErrors(error.response.data.errors);
       } else {
-        setError("Ocorreu um erro inesperado.");
+        console.error("Erro ao movimentar estoque:", error);
+        alert("Ocorreu um erro inesperado.");
       }
-      console.error(err);
     } finally {
       setProcessing(false);
     }
@@ -89,74 +69,59 @@ export default function EstoqueModal({
 
   return (
     <Modal show={isOpen} onClose={onClose}>
-      <form
-        onSubmit={handleSubmit}
-        className="p-6"
-        style={{ background: "white", borderRadius: "8px" }}
-      >
+      <form onSubmit={handleSubmit} className="p-6">
         <h2 className="text-lg font-medium text-gray-900">
-          Movimentar Estoque:{" "}
-          <span style={{ fontWeight: "bold" }}>{produto?.nome}</span>
+          Movimentar Estoque: {produto?.nome}
         </h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Estoque atual: {produto?.quantidade_estoque ?? 0}
+        <p className="text-sm text-gray-600">
+          Estoque Atual: <strong>{produto?.quantidade_estoque ?? 0}</strong>
         </p>
 
-        {/* Exibe o erro de estoque insuficiente */}
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+        <div className="mt-6 space-y-4">
+          {/* Tipo de Movimentação */}
+          <div>
+            <InputLabel htmlFor="tipo" value="Tipo de Movimentação" />
+            <select
+              id="tipo"
+              className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value as "entrada" | "saida")}
+              required
+            >
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+            <InputError message={errors.tipo} className="mt-2" />
           </div>
-        )}
 
-        <div className="mt-6">
-          <InputLabel htmlFor="tipo" value="Tipo de Movimentação" />
-          <select
-            id="tipo"
-            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value as "entrada" | "saida")}
-            required
-          >
-            <option value="entrada">Entrada (Compra/Ajuste)</option>
-            <option value="saida">Saída (Venda/Perda)</option>
-          </select>
-        </div>
-
-        <div className="mt-4">
-          <InputLabel htmlFor="quantidade" value="Quantidade" />
-          <TextInput
-            id="quantidade"
-            type="number"
-            min="1"
-            className="mt-1 block w-full"
-            value={quantidade}
-            onChange={(e) => setQuantidade(e.target.value)}
-            required
-            isFocused
-          />
-          {/* Exibe erro de quantidade (se não for o erro principal) */}
-          {!error && Number(quantidade) < 0 && (
-            <InputError
-              message="A quantidade não pode ser negativa."
-              className="mt-2"
+          {/* Quantidade */}
+          <div>
+            <InputLabel htmlFor="quantidade" value="Quantidade" />
+            <TextInput
+              id="quantidade"
+              type="number"
+              min="1"
+              step="1"
+              className="mt-1 block w-full"
+              value={quantidade}
+              onChange={(e) => setQuantidade(e.target.value)}
+              required
             />
-          )}
-        </div>
+            <InputError message={errors.quantidade} className="mt-2" />
+          </div>
 
-        <div className="mt-4">
-          <InputLabel
-            htmlFor="descricao"
-            value="Motivo / Descrição (Opcional)"
-          />
-          <TextInput
-            id="descricao"
-            type="text"
-            className="mt-1 block w-full"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            placeholder="Ex: Compra fornecedor X, Ajuste..."
-          />
+          {/* Descrição */}
+          <div>
+            <InputLabel htmlFor="descricao" value="Descrição/Motivo (Opcional)" />
+            <TextInput
+              id="descricao"
+              className="mt-1 block w-full"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              placeholder="Ex: Venda, Ajuste de inventário, etc."
+            />
+            <InputError message={errors.descricao} className="mt-2" />
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end">
@@ -165,7 +130,7 @@ export default function EstoqueModal({
           </SecondaryButton>
 
           <PrimaryButton className="ms-3" disabled={processing}>
-            {processing ? "Processando..." : "Confirmar"}
+            {processing ? "Salvando..." : "Confirmar Movimentação"}
           </PrimaryButton>
         </div>
       </form>
