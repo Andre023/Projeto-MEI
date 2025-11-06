@@ -46,7 +46,7 @@ export default function Authenticated({
                   href={route("arvore")}
                   active={route().current("arvore")}
                 >
-                  Arvores
+                  Árvores
                 </NavLink>
                 <NavLink
                   href={route("produtos")}

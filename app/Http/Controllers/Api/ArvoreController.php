@@ -9,6 +9,7 @@ use App\Models\Subcategoria;
 use App\Models\Grupo;
 use App\Models\Subgrupo;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class ArvoreController extends Controller
 {
@@ -17,11 +18,11 @@ class ArvoreController extends Controller
      */
     public function index()
     {
-        $arvore = CategoriaArvore::with([
-            'subcategorias.grupos.subgrupos'
-        ])
-            ->where('user_id', Auth::id()) // Garante que só puxe do usuário
-            ->get();
+        $arvore = Cache::remember('arvore.completa', 60 * 60, function () {
+            return CategoriaArvore::with([
+                'subcategorias.grupos.subgrupos'
+            ])->get();
+        });
 
         return response()->json($arvore);
     }
@@ -56,7 +57,7 @@ class ArvoreController extends Controller
                 $model = Subgrupo::create($data);
                 break;
         }
-
+        Cache::forget('arvore.completa');
         return response()->json($model, 201);
     }
 

@@ -17,13 +17,61 @@ class ProdutoController extends Controller
 {
     public function __construct(private EstoqueService $estoqueService) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(
-            Produto::with('subgrupo.grupo.subcategoria.categoria')
-                ->where('user_id', Auth::id())
-                ->get()
-        );
+        $perPage = $request->input('per_page', 10);
+        $sortKey = $request->input('sort_key', 'id');
+        $sortDir = $request->input('sort_direction', 'desc');
+
+        $validSortKeys = ['id', 'nome', 'codigo', 'preco', 'quantidade_estoque'];
+        if (!in_array($sortKey, $validSortKeys)) {
+            $sortKey = 'id';
+        }
+
+        $query = Produto::with('subgrupo.grupo.subcategoria.categoria')
+            ->where('user_id', Auth::id());
+
+        // 1. Filtro de Busca (searchTerm)
+        if ($request->filled('search')) {
+            $term = $request->input('search');
+            $query->where(function ($q) use ($term) {
+                $q->where('nome', 'LIKE', "%{$term}%")
+                    ->orWhere('codigo', 'LIKE', "%{$term}%")
+                    ->orWhere('id', 'LIKE', "%{$term}%");
+            });
+        }
+
+        // 2. Filtros da Árvore
+        if ($request->filled('subgrupo_id')) {
+            $query->where('subgrupo_id', $request->input('subgrupo_id'));
+        } elseif ($request->filled('grupo_id')) {
+            $query->whereHas('subgrupo', fn($q) => $q->where('grupo_id', $request->input('grupo_id')));
+        } elseif ($request->filled('subcategoria_id')) {
+            $query->whereHas('subgrupo.grupo', fn($q) => $q->where('subcategoria_id', $request->input('subcategoria_id')));
+        } elseif ($request->filled('categoria_id')) {
+            $query->whereHas('subgrupo.grupo.subcategoria', fn($q) => $q->where('categoria_arvore_id', $request->input('categoria_id')));
+        }
+
+        // 3. Filtros de Preço
+        if ($request->filled('preco_min')) {
+            $query->where('preco', '>=', $request->input('preco_min'));
+        }
+        if ($request->filled('preco_max')) {
+            $query->where('preco', '<=', $request->input('preco_max'));
+        }
+
+        // 4. Filtro de Estoque
+        if ($request->input('estoque_positivo') === 'true') {
+            $query->where('quantidade_estoque', '>', 0);
+        }
+
+        // 5. Ordenação
+        $query->orderBy($sortKey, $sortDir);
+
+        // 6. Paginação
+        $produtos = $query->paginate($perPage);
+
+        return response()->json($produtos);
     }
 
     public function store(Request $request): JsonResponse

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { User, Produto, CategoriaArvore } from "@/types";
@@ -6,6 +6,16 @@ import EstoqueModal from "@/Pages/Produtos/EstoqueModal";
 import ProdutoFormModal from "@/Pages/Produtos/ProdutoFormModal";
 import HistoricoModal from "@/Pages/Produtos/HistoricoModal";
 import { Plus, Edit, Trash2, Box, ScrollText, ChevronUp, ChevronDown, Search, Filter, X } from "lucide-react";
+
+interface PaginatedProdutos {
+    data: Produto[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    per_page: number;
+    from: number;
+    to: number;
+}
 
 interface ProdutosPageProps {
     auth: {
@@ -15,12 +25,10 @@ interface ProdutosPageProps {
 
 const formatSubgrupoPath = (produto: Produto): string => {
     if (!produto.subgrupo) return "N/A";
-
     const s = produto.subgrupo;
     const g = s.grupo;
     const sb = g?.subcategoria;
     const c = sb?.categoria;
-
     let path = [c?.nome, sb?.nome, g?.nome, s.nome].filter(Boolean).join(' > ');
     return path || "N/A";
 }
@@ -29,13 +37,11 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     const [produtos, setProdutos] = useState<Produto[]>([]);
     const [arvore, setArvore] = useState<CategoriaArvore[]>([]);
     const [sortConfig, setSortConfig] = useState<{ key: keyof Produto | null; direction: "asc" | "desc" }>({
-        key: null,
-        direction: "asc",
+        key: 'id',
+        direction: "desc",
     });
 
     const [searchTerm, setSearchTerm] = useState("");
-
-    // Modais
     const [isEstoqueModalOpen, setIsEstoqueModalOpen] = useState(false);
     const [isProdutoModalOpen, setIsProdutoModalOpen] = useState(false);
     const [isHistoricoModalOpen, setIsHistoricoModalOpen] = useState(false);
@@ -49,17 +55,20 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     const [selectedSubcategoriaId, setSelectedSubcategoriaId] = useState<string>("");
     const [selectedGrupoId, setSelectedGrupoId] = useState<string>("");
     const [selectedSubgrupoId, setSelectedSubgrupoId] = useState<string>("");
-
-    // Filtro de Estoque
     const [mostrarEstoquePositivo, setMostrarEstoquePositivo] = useState(false);
-
-    // Filtros de Preço
     const [precoMin, setPrecoMin] = useState("");
     const [precoMax, setPrecoMax] = useState("");
 
-    // Estados de paginação (Corretos)
+    // 5. Estados de paginação (controlados pela API)
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const [startIndex, setStartIndex] = useState(0);
+    const [endIndex, setEndIndex] = useState(0);
+
+    // 6. Estado de Loading
+    const [isLoading, setIsLoading] = useState(true);
 
     const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newSize = Number(e.target.value);
@@ -86,14 +95,50 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         return grp?.subgrupos || [];
     }, [selectedGrupoId, grupoOptions]);
 
-    const fetchProdutos = async () => {
+    const fetchProdutos = useCallback(async () => {
+        setIsLoading(true);
         try {
-            const response = await axios.get("/api/produtos");
-            setProdutos(response.data);
+            const params = new URLSearchParams();
+            params.append('page', String(currentPage));
+            params.append('per_page', String(itemsPerPage));
+
+            if (searchTerm) params.append('search', searchTerm);
+            if (sortConfig.key) {
+                params.append('sort_key', sortConfig.key);
+                params.append('sort_direction', sortConfig.direction);
+            }
+
+            if (selectedSubgrupoId) params.append('subgrupo_id', selectedSubgrupoId);
+            else if (selectedGrupoId) params.append('grupo_id', selectedGrupoId);
+            else if (selectedSubcategoriaId) params.append('subcategoria_id', selectedSubcategoriaId);
+            else if (selectedCategoriaId) params.append('categoria_id', selectedCategoriaId);
+
+            if (precoMin) params.append('preco_min', precoMin);
+            if (precoMax) params.append('preco_max', precoMax);
+            if (mostrarEstoquePositivo) params.append('estoque_positivo', 'true');
+
+            const response = await axios.get<PaginatedProdutos>(`/api/produtos?${params.toString()}`);
+            const data = response.data;
+
+            setProdutos(data.data);
+            setTotalItems(data.total);
+            setTotalPages(data.last_page);
+            setCurrentPage(data.current_page);
+            setItemsPerPage(data.per_page);
+            setStartIndex(data.from ? data.from - 1 : 0);
+            setEndIndex(data.to ? data.to : 0);
+
         } catch (error) {
             console.error("Erro ao buscar produtos:", error);
+        } finally {
+            setIsLoading(false);
         }
-    };
+    }, [
+        currentPage, itemsPerPage, searchTerm, sortConfig,
+        selectedCategoriaId, selectedSubcategoriaId, selectedGrupoId, selectedSubgrupoId,
+        precoMin, precoMax, mostrarEstoquePositivo
+    ]);
+
 
     const fetchArvore = async () => {
         try {
@@ -106,12 +151,22 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
 
     useEffect(() => {
         fetchProdutos();
+    }, [fetchProdutos]);
+
+    useEffect(() => {
         fetchArvore();
     }, []);
 
     useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm]);
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+    }, [
+        searchTerm, itemsPerPage, sortConfig,
+        selectedCategoriaId, selectedSubcategoriaId, selectedGrupoId, selectedSubgrupoId,
+        precoMin, precoMax, mostrarEstoquePositivo
+    ]);
+
 
     const handleCategoriaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedCategoriaId(e.target.value);
@@ -161,93 +216,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         setSortConfig({ key, direction });
     };
 
-    const searchedProdutos = produtos.filter((produto) => {
-        const termo = searchTerm.toLowerCase();
-        return (
-            produto.nome?.toLowerCase().includes(termo) ||
-            produto.codigo?.toLowerCase().includes(termo) ||
-            produto.id.toString().includes(termo) ||
-            formatSubgrupoPath(produto).toLowerCase().includes(termo)
-        );
-    });
-
-    const advancedFilteredProdutos = useMemo(() => {
-        const pMin = precoMin ? parseFloat(precoMin) : null;
-        const pMax = precoMax ? parseFloat(precoMax) : null;
-
-        return searchedProdutos.filter(produto => {
-            if (mostrarEstoquePositivo && (produto.quantidade_estoque ?? 0) <= 0) {
-                return false;
-            }
-
-            if (pMin !== null && produto.preco < pMin) {
-                return false;
-            }
-            if (pMax !== null && produto.preco > pMax) {
-                return false;
-            }
-
-            const prodCatId = produto.subgrupo?.grupo?.subcategoria?.categoria?.id;
-            const prodSubId = produto.subgrupo?.grupo?.subcategoria?.id;
-            const prodGrpId = produto.subgrupo?.grupo?.id;
-            const prodSubGrpId = produto.subgrupo?.id;
-
-            if (selectedCategoriaId && prodCatId !== Number(selectedCategoriaId)) {
-                return false;
-            }
-            if (selectedSubcategoriaId && prodSubId !== Number(selectedSubcategoriaId)) {
-                return false;
-            }
-            if (selectedGrupoId && prodGrpId !== Number(selectedGrupoId)) {
-                return false;
-            }
-            if (selectedSubgrupoId && prodSubGrpId !== Number(selectedSubgrupoId)) {
-                return false;
-            }
-
-            return true;
-        });
-    }, [
-        searchedProdutos,
-        selectedCategoriaId,
-        selectedSubcategoriaId,
-        selectedGrupoId,
-        selectedSubgrupoId,
-        precoMin,
-        precoMax,
-        mostrarEstoquePositivo
-    ]);
-
-    const sortedProdutos = React.useMemo(() => {
-        const sorted = [...advancedFilteredProdutos];
-        if (sortConfig.key !== null) {
-            const key = sortConfig.key as keyof Produto;
-            sorted.sort((a, b) => {
-                const aValue = a[key];
-                const bValue = b[key];
-                if (aValue === null || aValue === undefined) return 1;
-                if (bValue === null || bValue === undefined) return -1;
-
-                if (typeof aValue === "number" && typeof bValue === "number") {
-                    return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
-                }
-                return sortConfig.direction === "asc"
-                    ? String(aValue).localeCompare(String(bValue))
-                    : String(bValue).localeCompare(String(aValue));
-            });
-        }
-        return sorted;
-    }, [advancedFilteredProdutos, sortConfig]);
-
-    const totalItems = sortedProdutos.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-
-    const paginatedProdutos = React.useMemo(() => {
-        return sortedProdutos.slice(startIndex, endIndex);
-    }, [sortedProdutos, startIndex, endIndex]);
-
     const getSortIcon = (key: keyof Produto) => {
         if (sortConfig.key !== key) return null;
         return sortConfig.direction === "asc" ? (
@@ -260,13 +228,15 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     return (
         <AuthenticatedLayout>
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                     {/* Barra superior: busca + botão novo produto */}
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div className="relative w-full sm:w-1/3">
                             <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
                             <input
                                 type="text"
+                                id="search_termo"
+                                name="search_termo"
                                 placeholder="Buscar por nome, código ou ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -274,7 +244,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                             />
                         </div>
                         <div className="flex items-center gap-3">
-                            {/* --- BOTÃO DE FILTRO (ADICIONADO) --- */}
                             <button
                                 onClick={() => setIsFilterBarOpen(!isFilterBarOpen)}
                                 className={`inline-flex items-center px-4 py-2 border rounded-md font-semibold text-xs uppercase tracking-widest transition ease-in-out duration-150
@@ -286,8 +255,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                 <Filter size={16} className="mr-2" />
                                 Filtros
                             </button>
-
-                            {/* BOTÃO NOVO PRODUTO */}
                             <button
                                 onClick={() => {
                                     setProdutoEdicao(null);
@@ -307,7 +274,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                     `}>
                         <div className="p-4 bg-white shadow-sm sm:rounded-lg space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {/* Coluna 1: Categoria e Subcategoria */}
+                                {/* ... (Filtros Categoria/Subcategoria) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_cat" className="block text-sm font-medium text-gray-700">Categoria</label>
@@ -340,7 +307,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                     </div>
                                 </div>
 
-                                {/* Coluna 2: Grupo e Subgrupo */}
+                                {/* ... (Filtros Grupo/Subgrupo) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_grp" className="block text-sm font-medium text-gray-700">Grupo</label>
@@ -374,7 +341,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                     </div>
                                 </div>
 
-                                {/* Coluna 3: Preço */}
+                                {/* ... (Filtros Preço) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_preco_min" className="block text-sm font-medium text-gray-700">Preço (Mín)</label>
@@ -400,10 +367,10 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                     </div>
                                 </div>
 
-                                {/* Coluna 4: Outros e Ações */}
+                                {/* ... (Filtros Outros - Mudança de <label> para <span>) ... */}
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">Outros</label>
+                                        <span className="block text-sm font-medium text-gray-700">Outros</span>
                                         <div className="mt-2 flex items-center">
                                             <input
                                                 id="filtro_estoque"
@@ -417,7 +384,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                             </label>
                                         </div>
                                     </div>
-
                                     <div className="pt-5 flex justify-end">
                                         <button
                                             onClick={handleResetFilters}
@@ -433,9 +399,110 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                     </div>
                     {/* --- FIM DA BARRA DE FILTROS AVANÇADOS --- */}
 
-                    {/* Tabela */}
+                    {/* Tabela e Lista Mobile */}
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div className="overflow-x-auto overflow-y-hidden">
+
+                        {/* --- Início da Lista Mobile --- */}
+                        <div className="md:hidden divide-y divide-gray-200">
+                            {/* 14. Mapear 'produtos' direto */}
+                            {isLoading && (
+                                <div className="text-center py-6 text-gray-500">Carregando...</div>
+                            )}
+                            {!isLoading && produtos.length === 0 && (
+                                <div className="text-center py-6 text-gray-500">
+                                    Nenhum produto encontrado.
+                                </div>
+                            )}
+                            {!isLoading && produtos.map((produto) => (
+                                <div key={produto.id} className="p-4 space-y-3">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <span className="font-medium text-gray-900 break-words">
+                                            {produto.nome}
+                                        </span>
+                                        <span className="text-sm text-gray-600 font-mono ml-2 flex-shrink-0">
+                                            ID: {produto.id}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <div>
+                                            <span className="text-gray-500">Preço: </span>
+                                            <span className="font-medium text-gray-800">
+                                                {produto.preco.toLocaleString("pt-BR", {
+                                                    style: "currency",
+                                                    currency: "BRL",
+                                                })}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-gray-500">Estoque: </span>
+                                            <span
+                                                className={`font-bold ${(produto.quantidade_estoque ?? 0) > 0
+                                                        ? "text-green-700"
+                                                        : "text-red-600"
+                                                    }`}
+                                            >
+                                                {produto.quantidade_estoque ?? 0}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {produto.codigo && (
+                                        <div className="text-sm">
+                                            <span className="text-gray-500">Código: </span>
+                                            <span className="text-gray-700">{produto.codigo}</span>
+                                        </div>
+                                    )}
+                                    <div className="text-sm">
+                                        <span className="text-gray-500">Árvore: </span>
+                                        <span className="text-gray-700 break-words">
+                                            {formatSubgrupoPath(produto)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-end space-x-1 pt-3 mt-3 border-t border-gray-100">
+                                        <button
+                                            onClick={() => {
+                                                setProdutoHistorico(produto);
+                                                setIsHistoricoModalOpen(true);
+                                            }}
+                                            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition duration-150"
+                                            title="Histórico de Alterações"
+                                        >
+                                            <ScrollText size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setProdutoEstoque(produto);
+                                                setIsEstoqueModalOpen(true);
+                                            }}
+                                            className="p-2 rounded-full text-cyan-600 hover:bg-cyan-100 transition duration-150"
+                                            title="Movimentar Estoque"
+                                        >
+                                            <Box size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setProdutoEdicao(produto);
+                                                setIsProdutoModalOpen(true);
+                                            }}
+                                            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
+                                            title="Editar Produto"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(produto.id)}
+                                            className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
+                                            title="Excluir Produto"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* --- Fim da Lista Mobile --- */}
+
+                        {/* Tabela Desktop */}
+                        <div className="hidden md:block overflow-x-auto overflow-y-hidden min-h-[500px]">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-700">
                                     <tr>
@@ -461,7 +528,8 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {paginatedProdutos.map((produto) => (
+                                    {/* 16. Mapear 'produtos' direto */}
+                                    {!isLoading && produtos.map((produto) => (
                                         <tr key={produto.id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{produto.id}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{produto.nome}</td>
@@ -514,7 +582,14 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {sortedProdutos.length === 0 && (
+                                    {isLoading && (
+                                        <tr>
+                                            <td colSpan={7} className="text-center py-6 text-gray-500">
+                                                Carregando...
+                                            </td>
+                                        </tr>
+                                    )}
+                                    {!isLoading && totalItems === 0 && (
                                         <tr>
                                             <td colSpan={7} className="text-center py-6 text-gray-500">
                                                 Nenhum produto encontrado.
@@ -524,9 +599,10 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                 </tbody>
                             </table>
                         </div>
-                        {sortedProdutos.length > 0 && (
-                            <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 gap-4">
 
+                        {/* 17. Paginação agora usa 'totalItems' e 'totalPages' do estado */}
+                        {totalItems > 0 && (
+                            <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 gap-4">
                                 {/* LADO ESQUERDO: Seletor de Itens + Contagem */}
                                 <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
                                     <div className="flex items-center gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5">
@@ -549,7 +625,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                             </select>
                                         </div>
                                     </div>
-
                                     <span className="text-gray-600 whitespace-nowrap">
                                         Mostrando {startIndex + 1} a {endIndex} de {totalItems} produtos
                                     </span>
@@ -559,7 +634,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                 <div className="inline-flex items-center space-x-2">
                                     <button
                                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
+                                        disabled={currentPage === 1 || isLoading}
                                         className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Anterior
@@ -569,13 +644,12 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                     </span>
                                     <button
                                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
+                                        disabled={currentPage === totalPages || isLoading}
                                         className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         Próxima
                                     </button>
                                 </div>
-
                             </div>
                         )}
                     </div>
