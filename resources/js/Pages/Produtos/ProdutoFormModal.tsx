@@ -53,6 +53,7 @@ export default function ProdutoFormModal({
   const [descricao, setDescricao] = useState("");
   const [codigo, setCodigo] = useState("");
   const [preco, setPreco] = useState("");
+  const [precoCusto, setPrecoCusto] = useState("");
   const [subgrupoId, setSubgrupoId] = useState<number | string>("");
   const [quantidadeEstoque, setQuantidadeEstoque] = useState("");
 
@@ -77,6 +78,7 @@ export default function ProdutoFormModal({
         setDescricao(produto.descricao);
         setCodigo(produto.codigo || "");
         setPreco(produto.preco.toString());
+        setPrecoCusto(produto.preco_de_custo?.toString() || "");
         setSubgrupoId(produto.subgrupo_id);
         setQuantidadeEstoque("");
       } else {
@@ -91,6 +93,7 @@ export default function ProdutoFormModal({
     setDescricao("");
     setCodigo("");
     setPreco("");
+    setPrecoCusto("");
     setSubgrupoId("");
     setQuantidadeEstoque("");
   };
@@ -102,11 +105,13 @@ export default function ProdutoFormModal({
 
     try {
       const precoNumero = Number(preco);
+      const precoCustoNumero = Number(precoCusto) || 0;
       const payload: any = {
         nome,
         descricao,
         codigo: codigo || null,
         preco: precoNumero,
+        preco_de_custo: precoCustoNumero,
         subgrupo_id: Number(subgrupoId),
       };
 
@@ -152,6 +157,11 @@ export default function ProdutoFormModal({
             <InputLabel htmlFor="codigo" value="Código (EAN, SKU, etc.) (Opcional)" />
             <TextInput id="codigo" className="mt-1 block w-full" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
             <InputError message={errors.codigo} className="mt-2" />
+          </div>
+          <div>
+            <InputLabel htmlFor="preco_custo" value="Preço de Custo (R$)" />
+            <TextInput id="preco_custo" type="number" step="0.01" min="0" className="mt-1 block w-full" value={precoCusto} onChange={(e) => setPrecoCusto(e.target.value)} placeholder="0.00" />
+            <InputError message={errors.preco_de_custo} className="mt-2" />
           </div>
           <div>
             <InputLabel htmlFor="preco" value="Preço de Venda (R$)" />

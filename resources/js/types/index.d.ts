@@ -48,6 +48,7 @@ export interface Produto {
     descricao: string;
     codigo: string;
     preco: number;
+    preco_de_custo?: number;
     quantidade_estoque?: number;
 
     subgrupo_id: number;

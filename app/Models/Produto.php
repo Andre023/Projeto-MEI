@@ -16,6 +16,7 @@ class Produto extends Model
         'nome',
         'descricao',
         'preco',
+        'preco_de_custo',
         'codigo',
         'subgrupo_id',
         'quantidade_estoque',

@@ -5,6 +5,7 @@ import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
 import { Link, usePage } from "@inertiajs/react";
 import { User } from '@/types';
 import { PropsWithChildren, ReactNode, useState } from "react";
+import { Transition } from '@headlessui/react';
 
 export default function Authenticated({
   header,
@@ -157,85 +158,86 @@ export default function Authenticated({
           </div>
         </div>
 
-        <div
-          className={
-            (showingNavigationDropdown ? "block" : "hidden") + " sm:hidden"
-          }
+        <Transition
+          show={showingNavigationDropdown}
+          enter="transition-all duration-300 ease-out overflow-hidden"
+          enterFrom="max-h-0 opacity-0"
+          enterTo="max-h-screen opacity-100"
+          leave="transition-all duration-200 ease-in overflow-hidden"
+          leaveFrom="max-h-screen opacity-100"
+          leaveTo="max-h-0 opacity-0"
         >
-          <div className="space-y-1 pb-3 pt-2">
-            <ResponsiveNavLink
-              href={route("dashboard")}
-              active={route().current("dashboard")}
-            >
-              Dashboard
-            </ResponsiveNavLink>
-            {/* --- ADICIONADO LINKS FALTANTES --- */}
-            <ResponsiveNavLink
-              href={route("clientes")}
-              active={route().current("clientes")}
-            >
-              Clientes
-            </ResponsiveNavLink>
-            <ResponsiveNavLink
-              href={route("arvore")}
-              active={route().current("arvore")}
-            >
-              Árvore
-            </ResponsiveNavLink>
-            <ResponsiveNavLink
-              href={route("produtos")}
-              active={route().current("produtos")}
-            >
-              Produtos
-            </ResponsiveNavLink>
-          </div>
-
-          <div className="border-t border-gray-200 pb-1 pt-4">
-            {/* --- INÍCIO LÓGICA FOTO MOBILE --- */}
-            <div className="px-4 flex items-center">
-              <div className="shrink-0 me-3">
-                {user.profile_photo_url ? (
-                  <img
-                    src={user.profile_photo_url}
-                    alt="Foto de Perfil"
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
-                ) : (
-                  // Placeholder
-                  <span className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6 text-gray-500">
-                      <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.78 6.125-2.095a1.23 1.23 0 00.41-1.412A9.99 9.99 0 0010 13c-2.31 0-4.438.78-6.125 2.095z" />
-                    </svg>
-                  </span>
-                )}
-              </div>
-
-              <div>
-                <div className="text-base font-medium text-gray-800">
-                  {user.name}
-                </div>
-                <div className="text-sm font-medium text-gray-500">
-                  {user.email}
-                </div>
-              </div>
-            </div>
-            {/* --- FIM LÓGICA FOTO MOBILE --- */}
-
-
-            <div className="mt-3 space-y-1">
-              <ResponsiveNavLink href={route("profile.edit")}>
-                Perfil
+          <div className="sm:hidden">
+            <div className="space-y-1 pb-3 pt-2">
+              <ResponsiveNavLink
+                href={route("dashboard")}
+                active={route().current("dashboard")}
+              >
+                Dashboard
               </ResponsiveNavLink>
               <ResponsiveNavLink
-                method="post"
-                href={route("logout")}
-                as="button"
+                href={route("clientes")}
+                active={route().current("clientes")}
               >
-                Sair
+                Clientes
+              </ResponsiveNavLink>
+              <ResponsiveNavLink
+                href={route("arvore")}
+                active={route().current("arvore")}
+              >
+                Árvore
+              </ResponsiveNavLink>
+              <ResponsiveNavLink
+                href={route("produtos")}
+                active={route().current("produtos")}
+              >
+                Produtos
               </ResponsiveNavLink>
             </div>
+
+            <div className="border-t border-gray-200 pb-1 pt-4">
+              <div className="px-4 flex items-center">
+                <div className="shrink-0 me-3">
+                  {user.profile_photo_url ? (
+                    <img
+                      src={user.profile_photo_url}
+                      alt="Foto de Perfil"
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-6 h-6 text-gray-500">
+                        <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.78 6.125-2.095a1.23 1.23 0 00.41-1.412A9.99 9.99 0 0010 13c-2.31 0-4.438.78-6.125 2.095z" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-base font-medium text-gray-800">
+                    {user.name}
+                  </div>
+                  <div className="text-sm font-medium text-gray-500">
+                    {user.email}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-1">
+                <ResponsiveNavLink href={route("profile.edit")}>
+                  Perfil
+                </ResponsiveNavLink>
+                <ResponsiveNavLink
+                  method="post"
+                  href={route("logout")}
+                  as="button"
+                >
+                  Sair
+                </ResponsiveNavLink>
+              </div>
+            </div>
           </div>
-        </div>
+        </Transition>
       </nav>
 
       {header && (

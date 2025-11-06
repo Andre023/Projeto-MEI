@@ -225,11 +225,18 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
         );
     };
 
+    const formatCurrency = (value: number | null | undefined) => {
+        const numValue = value || 0;
+        return numValue.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+        });
+    };
+
     return (
         <AuthenticatedLayout>
             <div className="py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-                    {/* Barra superior: busca + botão novo produto */}
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div className="relative w-full sm:w-1/3">
                             <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
@@ -267,14 +274,12 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                             </button>
                         </div>
                     </div>
-                    {/* --- BARRA DE FILTROS AVANÇADOS --- */}
                     <div className={`
                         transition-all duration-300 ease-in-out overflow-hidden 
                         ${isFilterBarOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}
                     `}>
                         <div className="p-4 bg-white shadow-sm sm:rounded-lg space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {/* ... (Filtros Categoria/Subcategoria) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_cat" className="block text-sm font-medium text-gray-700">Categoria</label>
@@ -306,8 +311,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                         </select>
                                     </div>
                                 </div>
-
-                                {/* ... (Filtros Grupo/Subgrupo) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_grp" className="block text-sm font-medium text-gray-700">Grupo</label>
@@ -340,8 +343,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                         </select>
                                     </div>
                                 </div>
-
-                                {/* ... (Filtros Preço) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <label htmlFor="filtro_preco_min" className="block text-sm font-medium text-gray-700">Preço (Mín)</label>
@@ -366,8 +367,6 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                                         />
                                     </div>
                                 </div>
-
-                                {/* ... (Filtros Outros - Mudança de <label> para <span>) ... */}
                                 <div className="space-y-4">
                                     <div>
                                         <span className="block text-sm font-medium text-gray-700">Outros</span>
@@ -397,266 +396,275 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
                             </div>
                         </div>
                     </div>
-                    {/* --- FIM DA BARRA DE FILTROS AVANÇADOS --- */}
+                    {/* --- FIM DA BARRA DE FILTROS --- */}
 
-                    {/* Tabela e Lista Mobile */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
 
-                        {/* --- Início da Lista Mobile --- */}
-                        <div className="md:hidden divide-y divide-gray-200">
-                            {/* 14. Mapear 'produtos' direto */}
-                            {isLoading && (
-                                <div className="text-center py-6 text-gray-500">Carregando...</div>
-                            )}
-                            {!isLoading && produtos.length === 0 && (
-                                <div className="text-center py-6 text-gray-500">
-                                    Nenhum produto encontrado.
+                    {/* --- Tabela e Lista Mobile --- */}
+                    <div className="md:hidden divide-y divide-gray-200">
+                        {isLoading && (
+                            <div className="text-center py-6 text-gray-500">Carregando...</div>
+                        )}
+                        {!isLoading && produtos.length === 0 && (
+                            <div className="text-center py-6 text-gray-500">
+                                Nenhum produto encontrado.
+                            </div>
+                        )}
+                        {!isLoading && produtos.map((produto) => (
+                            <div key={produto.id} className="p-4 space-y-3">
+                                <div className="flex justify-between items-start gap-2">
+                                    <span className="font-medium text-gray-900 break-words">
+                                        {produto.nome}
+                                    </span>
+                                    <span className="text-sm text-gray-600 font-mono ml-2 flex-shrink-0">
+                                        ID: {produto.id}
+                                    </span>
                                 </div>
-                            )}
-                            {!isLoading && produtos.map((produto) => (
-                                <div key={produto.id} className="p-4 space-y-3">
-                                    <div className="flex justify-between items-start gap-2">
-                                        <span className="font-medium text-gray-900 break-words">
-                                            {produto.nome}
-                                        </span>
-                                        <span className="text-sm text-gray-600 font-mono ml-2 flex-shrink-0">
-                                            ID: {produto.id}
+                                <div className="flex justify-between items-center text-sm">
+                                    <div>
+                                        <span className="text-gray-500">Custo: </span>
+                                        <span className="font-medium text-gray-800">
+                                            {formatCurrency(produto.preco_de_custo)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <div>
-                                            <span className="text-gray-500">Preço: </span>
-                                            <span className="font-medium text-gray-800">
-                                                {produto.preco.toLocaleString("pt-BR", {
-                                                    style: "currency",
-                                                    currency: "BRL",
-                                                })}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">Estoque: </span>
-                                            <span
-                                                className={`font-bold ${(produto.quantidade_estoque ?? 0) > 0
-                                                        ? "text-green-700"
-                                                        : "text-red-600"
-                                                    }`}
-                                            >
-                                                {produto.quantidade_estoque ?? 0}
-                                            </span>
-                                        </div>
+                                    <div>
+                                        <span className="text-gray-500">Venda: </span>
+                                        <span className="font-medium text-gray-800">
+                                            {formatCurrency(produto.preco)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center text-sm">
+                                    <div>
+                                        <span className="text-gray-500">Estoque: </span>
+                                        <span
+                                            className={`font-bold ${(produto.quantidade_estoque ?? 0) > 0
+                                                ? "text-green-700"
+                                                : "text-red-600"
+                                                }`}
+                                        >
+                                            {produto.quantidade_estoque ?? 0}
+                                        </span>
                                     </div>
                                     {produto.codigo && (
-                                        <div className="text-sm">
+                                        <div>
                                             <span className="text-gray-500">Código: </span>
                                             <span className="text-gray-700">{produto.codigo}</span>
                                         </div>
                                     )}
-                                    <div className="text-sm">
-                                        <span className="text-gray-500">Árvore: </span>
-                                        <span className="text-gray-700 break-words">
-                                            {formatSubgrupoPath(produto)}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center justify-end space-x-1 pt-3 mt-3 border-t border-gray-100">
-                                        <button
-                                            onClick={() => {
-                                                setProdutoHistorico(produto);
-                                                setIsHistoricoModalOpen(true);
-                                            }}
-                                            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition duration-150"
-                                            title="Histórico de Alterações"
-                                        >
-                                            <ScrollText size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setProdutoEstoque(produto);
-                                                setIsEstoqueModalOpen(true);
-                                            }}
-                                            className="p-2 rounded-full text-cyan-600 hover:bg-cyan-100 transition duration-150"
-                                            title="Movimentar Estoque"
-                                        >
-                                            <Box size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setProdutoEdicao(produto);
-                                                setIsProdutoModalOpen(true);
-                                            }}
-                                            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
-                                            title="Editar Produto"
-                                        >
-                                            <Edit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(produto.id)}
-                                            className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
-                                            title="Excluir Produto"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                        {/* --- Fim da Lista Mobile --- */}
-
-                        {/* Tabela Desktop */}
-                        <div className="hidden md:block overflow-x-auto overflow-y-hidden min-h-[500px]">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-700">
-                                    <tr>
-                                        <th onClick={() => handleSort("id")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
-                                            ID {getSortIcon("id")}
-                                        </th>
-                                        <th onClick={() => handleSort("nome")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
-                                            Nome {getSortIcon("nome")}
-                                        </th>
-                                        <th onClick={() => handleSort("codigo")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
-                                            Código {getSortIcon("codigo")}
-                                        </th>
-                                        <th onClick={() => handleSort("preco")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
-                                            Preço {getSortIcon("preco")}
-                                        </th>
-                                        <th onClick={() => handleSort("quantidade_estoque")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
-                                            Estoque {getSortIcon("quantidade_estoque")}
-                                        </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider max-w-xs">
-                                            Árvore mercadológica
-                                        </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {/* 16. Mapear 'produtos' direto */}
-                                    {!isLoading && produtos.map((produto) => (
-                                        <tr key={produto.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{produto.id}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center">{produto.nome}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{produto.codigo || "N/A"}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                                {produto.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold text-center">{produto.quantidade_estoque ?? 0}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate text-center" title={formatSubgrupoPath(produto)}>
-                                                {formatSubgrupoPath(produto)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setProdutoHistorico(produto);
-                                                        setIsHistoricoModalOpen(true);
-                                                    }}
-                                                    className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition duration-150"
-                                                    title="Histórico de Alterações"
-                                                >
-                                                    <ScrollText size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setProdutoEstoque(produto);
-                                                        setIsEstoqueModalOpen(true);
-                                                    }}
-                                                    className="p-2 rounded-full text-cyan-600 hover:bg-cyan-100 transition duration-150"
-                                                    title="Movimentar Estoque"
-                                                >
-                                                    <Box size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        setProdutoEdicao(produto);
-                                                        setIsProdutoModalOpen(true);
-                                                    }}
-                                                    className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
-                                                    title="Editar Produto"
-                                                >
-                                                    <Edit size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(produto.id)}
-                                                    className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
-                                                    title="Excluir Produto"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {isLoading && (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-6 text-gray-500">
-                                                Carregando...
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {!isLoading && totalItems === 0 && (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-6 text-gray-500">
-                                                Nenhum produto encontrado.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* 17. Paginação agora usa 'totalItems' e 'totalPages' do estado */}
-                        {totalItems > 0 && (
-                            <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 gap-4">
-                                {/* LADO ESQUERDO: Seletor de Itens + Contagem */}
-                                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5">
-                                        <label
-                                            htmlFor="itemsPerPageSelect"
-                                            className="font-medium text-gray-700 whitespace-nowrap"
-                                        >
-                                            Itens por página:
-                                        </label>
-                                        <div className="relative">
-                                            <select
-                                                id="itemsPerPageSelect"
-                                                value={itemsPerPage}
-                                                onChange={handleItemsPerPageChange}
-                                                className="appearance-none border border-gray-300 rounded-md pl-3 pr-8 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
-                                            >
-                                                <option value={10}>10</option>
-                                                <option value={20}>20</option>
-                                                <option value={50}>50</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <span className="text-gray-600 whitespace-nowrap">
-                                        Mostrando {startIndex + 1} a {endIndex} de {totalItems} produtos
+                                <div className="text-sm">
+                                    <span className="text-gray-500">Árvore: </span>
+                                    <span className="text-gray-700 break-words">
+                                        {formatSubgrupoPath(produto)}
                                     </span>
                                 </div>
-
-                                {/* LADO DIREITO: Botões de Navegação */}
-                                <div className="inline-flex items-center space-x-2">
+                                <div className="flex items-center justify-end space-x-1 pt-3 mt-3 border-t border-gray-100">
                                     <button
-                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1 || isLoading}
-                                        className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={() => {
+                                            setProdutoHistorico(produto);
+                                            setIsHistoricoModalOpen(true);
+                                        }}
+                                        className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition duration-150"
+                                        title="Histórico de Alterações"
                                     >
-                                        Anterior
+                                        <ScrollText size={18} />
                                     </button>
-                                    <span className="text-sm text-gray-500 px-2">
-                                        Página {currentPage} de {totalPages}
-                                    </span>
                                     <button
-                                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages || isLoading}
-                                        className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={() => {
+                                            setProdutoEstoque(produto);
+                                            setIsEstoqueModalOpen(true);
+                                        }}
+                                        className="p-2 rounded-full text-cyan-600 hover:bg-cyan-100 transition duration-150"
+                                        title="Movimentar Estoque"
                                     >
-                                        Próxima
+                                        <Box size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setProdutoEdicao(produto);
+                                            setIsProdutoModalOpen(true);
+                                        }}
+                                        className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
+                                        title="Editar Produto"
+                                    >
+                                        <Edit size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(produto.id)}
+                                        className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
+                                        title="Excluir Produto"
+                                    >
+                                        <Trash2 size={18} />
                                     </button>
                                 </div>
                             </div>
-                        )}
+                        ))}
                     </div>
+                    {/* --- Fim da Lista Mobile --- */}
+
+                    {/* Tabela Desktop */}
+                    <div className="hidden md:block overflow-x-auto min-h-[500px]">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-700">
+                                <tr>
+                                    <th onClick={() => handleSort("id")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        ID {getSortIcon("id")}
+                                    </th>
+                                    <th onClick={() => handleSort("nome")} className="px-6 py-3 text-left text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        Nome {getSortIcon("nome")}
+                                    </th>
+                                    <th onClick={() => handleSort("codigo")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer hidden lg:table-cell">
+                                        Código {getSortIcon("codigo")}
+                                    </th>
+                                    <th onClick={() => handleSort("preco_de_custo" as any)} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        Custo {getSortIcon("preco_de_custo" as any)}
+                                    </th>
+                                    <th onClick={() => handleSort("preco")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer">
+                                        Venda {getSortIcon("preco")}
+                                    </th>
+
+                                    <th onClick={() => handleSort("quantidade_estoque")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer whitespace-nowrap">
+                                        Estoque {getSortIcon("quantidade_estoque")}
+                                    </th>
+
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider max-w-60 hidden lg:table-cell">
+                                        Árvore mercadológica
+                                    </th>
+
+                                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {!isLoading && produtos.map((produto) => (
+                                    <tr key={produto.id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">{produto.id}</td>
+
+                                        <td className="px-6 py-4 text-sm font-medium text-gray-900 text-left max-w-sm truncate" title={produto.nome}>
+                                            {produto.nome}
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center hidden lg:table-cell">{produto.codigo || "N/A"}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-center">
+                                            {formatCurrency(produto.preco_de_custo)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold text-center">
+                                            {formatCurrency(produto.preco)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold text-center">{produto.quantidade_estoque ?? 0}</td>
+
+                                        <td className="px-6 py-4 text-sm text-gray-500 max-w-60 truncate text-center hidden lg:table-cell" title={formatSubgrupoPath(produto)}>
+                                            {formatSubgrupoPath(produto)}
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                                            <button
+                                                onClick={() => {
+                                                    setProdutoHistorico(produto);
+                                                    setIsHistoricoModalOpen(true);
+                                                }}
+                                                className="p-2 rounded-full text-gray-500 hover:bg-gray-100 transition duration-150"
+                                                title="Histórico de Alterações"
+                                            >
+                                                <ScrollText size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setProdutoEstoque(produto);
+                                                    setIsEstoqueModalOpen(true);
+                                                }}
+                                                className="p-2 rounded-full text-cyan-600 hover:bg-cyan-100 transition duration-150"
+                                                title="Movimentar Estoque"
+                                            >
+                                                <Box size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setProdutoEdicao(produto);
+                                                    setIsProdutoModalOpen(true);
+                                                }}
+                                                className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
+                                                title="Editar Produto"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(produto.id)}
+                                                className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
+                                                title="Excluir Produto"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {isLoading && (
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-6 text-gray-500">
+                                            Carregando...
+                                        </td>
+                                    </tr>
+                                )}
+                                {!isLoading && totalItems === 0 && (
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-6 text-gray-500">
+                                            Nenhum produto encontrado.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalItems > 0 && (
+                        <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t border-gray-200 gap-4">
+                            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
+                                <div className="flex items-center gap-2 bg-gray-50 border border-gray-300 rounded-lg px-3 py-1.5">
+                                    <label
+                                        htmlFor="itemsPerPageSelect"
+                                        className="font-medium text-gray-700 whitespace-nowrap"
+                                    >
+                                        Itens por página:
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            id="itemsPerPageSelect"
+                                            value={itemsPerPage}
+                                            onChange={handleItemsPerPageChange}
+                                            className="appearance-none border border-gray-300 rounded-md pl-3 pr-8 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
+                                        >
+                                            <option value={10}>10</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <span className="text-gray-600 whitespace-nowrap">
+                                    Mostrando {startIndex + 1} a {endIndex} de {totalItems} produtos
+                                </span>
+                            </div>
+                            <div className="inline-flex items-center space-x-2">
+                                <button
+                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1 || isLoading}
+                                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Anterior
+                                </button>
+                                <span className="text-sm text-gray-500 px-2">
+                                    Página {currentPage} de {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages || isLoading}
+                                    className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Próxima
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* Modais */}
             <EstoqueModal
                 isOpen={isEstoqueModalOpen}
                 onClose={() => setIsEstoqueModalOpen(false)}

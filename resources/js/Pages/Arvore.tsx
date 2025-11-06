@@ -2,6 +2,7 @@ import React, { useState, useEffect, FormEvent } from "react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Plus, Edit, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Transition } from "@headlessui/react";
 
 interface Subgrupo {
   id: number;
@@ -105,7 +106,15 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
       </div>
 
       {/* Renderiza os filhos recursivamente */}
-      {expanded && children.length > 0 && (
+      <Transition
+        show={expanded && children.length > 0}
+        enter="transition-all duration-300 ease-out overflow-hidden"
+        enterFrom="max-h-0 opacity-0"
+        enterTo="max-h-screen opacity-100"
+        leave="transition-all duration-200 ease-in overflow-hidden"
+        leaveFrom="max-h-screen opacity-100"
+        leaveTo="max-h-0 opacity-0"
+      >
         <ul className="mt-1">
           {children.map((child: any) => (
             <TreeNode
@@ -118,7 +127,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
             />
           ))}
         </ul>
-      )}
+      </Transition>
     </li>
   );
 };

@@ -23,7 +23,7 @@ class ProdutoController extends Controller
         $sortKey = $request->input('sort_key', 'id');
         $sortDir = $request->input('sort_direction', 'desc');
 
-        $validSortKeys = ['id', 'nome', 'codigo', 'preco', 'quantidade_estoque'];
+        $validSortKeys = ['id', 'nome', 'codigo', 'preco', 'preco_de_custo', 'quantidade_estoque'];
         if (!in_array($sortKey, $validSortKeys)) {
             $sortKey = 'id';
         }
@@ -89,6 +89,7 @@ class ProdutoController extends Controller
             ],
             'subgrupo_id' => 'required|exists:subgrupos,id',
             'preco' => 'required|numeric|min:0',
+            'preco_de_custo' => 'nullable|numeric|min:0',
             'quantidade_estoque' => 'nullable|integer|min:0',
         ]);
 
@@ -146,6 +147,7 @@ class ProdutoController extends Controller
             ],
             'subgrupo_id' => 'sometimes|exists:subgrupos,id',
             'preco' => 'sometimes|numeric|min:0',
+            'preco_de_custo' => 'sometimes|numeric|min:0',
             'quantidade_estoque' => 'prohibited',
         ]);
 
