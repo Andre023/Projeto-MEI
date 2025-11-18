@@ -236,7 +236,7 @@ const Produtos: React.FC<ProdutosPageProps> = ({ auth }) => {
     return (
         <AuthenticatedLayout>
             <div className="py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                         <div className="relative w-full sm:w-1/3">
                             <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />

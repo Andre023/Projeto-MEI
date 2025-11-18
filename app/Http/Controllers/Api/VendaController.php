@@ -14,27 +14,22 @@ use Exception;
 
 class VendaController extends Controller
 {
-  // Injetamos o EstoqueService, assim como no ProdutoController
   public function __construct(private EstoqueService $estoqueService) {}
 
-  /**
-   * Lista todas as vendas, com paginação e filtros.
-   */
   public function index(Request $request): JsonResponse
   {
     $perPage = $request->input('per_page', 10);
-    $sortKey = $request->input('sort_key', 'id');
+    $sortKey = $request->input('sort_key', 'created_at'); // Padrão por data
     $sortDir = $request->input('sort_direction', 'desc');
 
     $validSortKeys = ['id', 'total_venda', 'created_at', 'cliente_id'];
     if (!in_array($sortKey, $validSortKeys)) {
-      $sortKey = 'id';
+      $sortKey = 'created_at';
     }
 
-    $query = Venda::with('cliente') // Carrega o relacionamento com o cliente
+    $query = Venda::with('cliente')
       ->where('user_id', Auth::id());
 
-    // 1. Filtro de Busca (pode buscar pelo ID da venda ou nome do cliente)
     if ($request->filled('search')) {
       $term = $request->input('search');
       $query->where(function ($q) use ($term) {
@@ -45,26 +40,18 @@ class VendaController extends Controller
       });
     }
 
-    // 2. Filtro por Cliente
     if ($request->filled('cliente_id')) {
       $query->where('cliente_id', $request->input('cliente_id'));
     }
 
-    // 3. Ordenação
     $query->orderBy($sortKey, $sortDir);
-
-    // 4. Paginação
     $vendas = $query->paginate($perPage);
 
     return response()->json($vendas);
   }
 
-  /**
-   * Cria uma nova venda.
-   */
   public function store(Request $request): JsonResponse
   {
-    // Validação dos dados
     $dadosValidados = $request->validate([
       'cliente_id' => 'required|exists:clientes,id',
       'items' => 'required|array|min:1',
@@ -77,33 +64,31 @@ class VendaController extends Controller
     $produtosParaAtualizarEstoque = [];
 
     try {
-      // Inicia uma transação
       $venda = DB::transaction(function () use ($dadosValidados, &$totalVenda, &$vendaItems, &$produtosParaAtualizarEstoque) {
-
-        // 1. Cria a Venda (cabeçalho)
         $venda = Venda::create([
           'user_id' => Auth::id(),
           'cliente_id' => $dadosValidados['cliente_id'],
-          'total_venda' => 0, // Total temporário
+          'total_venda' => 0,
         ]);
 
         $items = $dadosValidados['items'];
 
-        // 2. Processa os Itens
         foreach ($items as $item) {
           $produto = Produto::where('user_id', Auth::id())->find($item['produto_id']);
 
           if (!$produto) {
-            throw new Exception("Produto com ID {$item['produto_id']} não encontrado.");
+            throw new Exception("Produto ID {$item['produto_id']} inválido.");
           }
 
-          $precoUnitario = $produto->preco; // Pega o preço de venda atual do produto
-          $quantidade = $item['quantidade'];
+          // Verifica estoque antes
+          if (($produto->quantidade_estoque ?? 0) < $item['quantidade']) {
+            throw new Exception("Estoque insuficiente para o produto: {$produto->nome}");
+          }
 
-          // Adiciona ao total
+          $precoUnitario = $produto->preco;
+          $quantidade = $item['quantidade'];
           $totalVenda += $precoUnitario * $quantidade;
 
-          // Prepara o item para ser criado no banco
           $vendaItems[] = [
             'venda_id' => $venda->id,
             'produto_id' => $produto->id,
@@ -113,7 +98,6 @@ class VendaController extends Controller
             'updated_at' => now(),
           ];
 
-          // Prepara a movimentação de estoque
           $produtosParaAtualizarEstoque[] = [
             'produto' => $produto,
             'quantidade' => $quantidade,
@@ -121,15 +105,10 @@ class VendaController extends Controller
           ];
         }
 
-        // 3. Insere todos os itens de uma vez (mais eficiente)
         DB::table('venda_items')->insert($vendaItems);
-
-        // 4. Atualiza o Total da Venda
         $venda->total_venda = $totalVenda;
         $venda->save();
 
-        // 5. Movimenta o Estoque (fora da transação principal se o EstoqueService já usa transação)
-        // Mas para garantir a atomicidade, fazemos aqui.
         foreach ($produtosParaAtualizarEstoque as $mov) {
           $this->estoqueService->movimentarEstoque(
             $mov['produto'],
@@ -142,41 +121,52 @@ class VendaController extends Controller
         return $venda;
       });
 
-      // Recarrega a venda com o cliente e os itens (e os produtos dentro dos itens)
       $venda->load('cliente', 'items.produto');
-
       return response()->json($venda, 201);
     } catch (Exception $e) {
-      // Se algo der errado (ex: estoque insuficiente), o DB::transaction faz o rollback
       return response()->json(['message' => $e->getMessage()], 422);
     }
   }
 
-  /**
-   * Exibe uma venda específica com seus itens.
-   */
   public function show($id): JsonResponse
   {
     $venda = Venda::where('user_id', Auth::id())
-      ->with('cliente', 'items.produto') // Carrega cliente e os itens com seus produtos
+      ->with('cliente', 'items.produto')
       ->findOrFail($id);
-
     return response()->json($venda);
   }
 
   /**
-   * Exclui uma venda.
-   * NOTA: Isso NÃO reverte o estoque. Seria necessário um método 'cancelarVenda'
-   * para fazer a lógica de estorno (entrada de estoque).
+   * Exclui uma venda e ESTORNA o estoque.
    */
   public function destroy($id): JsonResponse
   {
-    $venda = Venda::where('user_id', Auth::id())->findOrFail($id);
+    try {
+      DB::transaction(function () use ($id) {
+        // 1. Busca a venda com os itens e produtos
+        $venda = Venda::where('user_id', Auth::id())
+          ->with('items.produto')
+          ->findOrFail($id);
 
-    // O cascade no banco de dados (onDelete('cascade'))
-    // deve apagar os 'venda_items' automaticamente.
-    $venda->delete();
+        // 2. Estorna o estoque de cada item
+        foreach ($venda->items as $item) {
+          if ($item->produto) {
+            $this->estoqueService->movimentarEstoque(
+              $item->produto,
+              'entrada', // Devolve ao estoque
+              $item->quantidade,
+              "Estorno - Exclusão Venda #{$venda->id}"
+            );
+          }
+        }
 
-    return response()->json(null, 204);
+        // 3. Deleta a venda (cascade deleta os itens)
+        $venda->delete();
+      });
+
+      return response()->json(null, 204);
+    } catch (Exception $e) {
+      return response()->json(['message' => 'Erro ao excluir venda: ' . $e->getMessage()], 500);
+    }
   }
 }

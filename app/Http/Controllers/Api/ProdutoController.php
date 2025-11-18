@@ -45,11 +45,13 @@ class ProdutoController extends Controller
         if ($request->filled('subgrupo_id')) {
             $query->where('subgrupo_id', $request->input('subgrupo_id'));
         } elseif ($request->filled('grupo_id')) {
+            // Filtra produtos onde o subgrupo pertence ao grupo X
             $query->whereHas('subgrupo', fn($q) => $q->where('grupo_id', $request->input('grupo_id')));
         } elseif ($request->filled('subcategoria_id')) {
+            // Filtra produtos onde o subgrupo->grupo pertence à subcategoria X
             $query->whereHas('subgrupo.grupo', fn($q) => $q->where('subcategoria_id', $request->input('subcategoria_id')));
         } elseif ($request->filled('categoria_id')) {
-            $query->whereHas('subgrupo.grupo.subcategoria', fn($q) => $q->where('categoria_arvore_id', $request->input('categoria_id')));
+            $query->whereHas('subgrupo.grupo.subcategoria.categoria', fn($q) => $q->where('id', $request->input('categoria_id')));
         }
 
         // 3. Filtros de Preço
