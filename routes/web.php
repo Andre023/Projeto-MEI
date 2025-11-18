@@ -5,10 +5,13 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-// --- 1. IMPORTE OS CONTROLLERS DA API CORRETAMENTE ---
 use App\Http\Controllers\Api\ArvoreController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\ProdutoController;
+use App\Http\Controllers\Api\VendaController;
+
+use App\Models\Cliente;
+use Illuminate\Support\Facades\Auth;
 
 
 Route::get('/', function () {
@@ -20,7 +23,6 @@ Route::get('/', function () {
     ]);
 });
 
-// --- 2. COLOQUE TODAS AS ROTAS AUTENTICADAS EM UM ÚNICO GRUPO ---
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- ROTAS DAS PÁGINAS (INERTIA) ---
@@ -40,12 +42,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Produtos');
     })->name('produtos');
 
+    Route::get('/vendas', function () {
+        return Inertia::render('Vendas');
+    })->name('vendas');
+
+    Route::get('/vendas/nova', function () {
+
+        // Agora 'Cliente' e 'Auth' serão reconhecidos
+        $clientes = Cliente::where('user_id', Auth::id())->get();
+
+        return Inertia::render('Vendas/Create', [
+            'clientes' => $clientes,
+            'produtos' => []
+        ]);
+    })->name('vendas.create');
+
     // --- ROTAS DE PERFIL ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // --- 3. ADICIONE AS ROTAS DA API AQUI DENTRO ---
     // (Isto fará com que o Auth::check() funcione para elas)
     Route::prefix('api')->group(function () {
         Route::apiResource('clientes', ClienteController::class);
@@ -56,12 +72,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::apiResource('produtos', ProdutoController::class);
 
         // Rotas da Árvore de Categorias
-        Route::get('arvore', [ArvoreController::class, 'index']);
-        Route::post('arvore', [ArvoreController::class, 'store']);
-        Route::put('arvore/{id}', [ArvoreController::class, 'update']);
-        Route::delete('arvore/{id}', [ArvoreController::class, 'destroy']);
+        Route::apiResource('arvore', ArvoreController::class);
+
+        // Rotas de Venda
+        Route::apiResource('vendas', VendaController::class);
     });
-}); // --- FIM DO GRUPO 'auth' ---
+});
 
 
 require __DIR__ . '/auth.php';

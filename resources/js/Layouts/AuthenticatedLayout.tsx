@@ -55,6 +55,9 @@ export default function Authenticated({
                 >
                   Produtos
                 </NavLink>
+                <NavLink href={route('vendas')} active={route().current('vendas')}>
+                  Vendas
+                </NavLink>
               </div>
             </div>
 
@@ -192,6 +195,12 @@ export default function Authenticated({
                 active={route().current("produtos")}
               >
                 Produtos
+              </ResponsiveNavLink>
+              <ResponsiveNavLink
+                href={route("vendas")}
+                active={route().current("vendas")}
+              >
+                Vendas
               </ResponsiveNavLink>
             </div>
 
