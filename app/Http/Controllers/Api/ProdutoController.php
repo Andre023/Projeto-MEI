@@ -186,7 +186,11 @@ class ProdutoController extends Controller
                 $produtoAtualizado->load('movimentacoes')
             );
         } catch (Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 422);
+            return response()->json([
+                'errors' => [
+                    'quantidade' => [$e->getMessage()]
+                ]
+            ], 422);
         }
     }
 

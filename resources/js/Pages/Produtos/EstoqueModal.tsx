@@ -42,6 +42,19 @@ export default function EstoqueModal({
     e.preventDefault();
     if (!produto) return;
 
+    // --- VALIDAÇÃO CLIENT-SIDE ---
+    if (tipo === 'saida') {
+      const qtdAtual = produto.quantidade_estoque || 0;
+      const qtdSaida = Number(quantidade);
+
+      if (qtdSaida > qtdAtual) {
+        setErrors({
+          quantidade: `Saldo insuficiente. Atual: ${qtdAtual}, Tentativa: ${qtdSaida}`
+        });
+        return;
+      }
+    }
+
     setProcessing(true);
     setErrors({});
 
@@ -55,9 +68,17 @@ export default function EstoqueModal({
       await axios.post(`/api/produtos/${produto.id}/estoque`, payload);
       onSuccess();
 
-    } catch (error) {
+    } catch (error: any) {
       if (axios.isAxiosError(error) && error.response?.status === 422) {
-        setErrors(error.response.data.errors);
+        const data = error.response.data;
+
+        if (data.errors) {
+          setErrors(data.errors);
+        } else if (data.message) {
+          setErrors({ quantidade: data.message });
+        } else {
+          setErrors({});
+        }
       } else {
         console.error("Erro ao movimentar estoque:", error);
         alert("Ocorreu um erro inesperado.");
@@ -73,7 +94,9 @@ export default function EstoqueModal({
         <h2 className="text-lg font-medium text-gray-900">
           Movimentar Estoque: {produto?.nome}
         </h2>
-        <p className="text-sm text-gray-600">
+
+        {/* Mostra o estoque com destaque visual condicional */}
+        <p className={`text-sm mt-1 ${produto?.quantidade_estoque === 0 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
           Estoque Atual: <strong>{produto?.quantidade_estoque ?? 0}</strong>
         </p>
 
@@ -85,7 +108,10 @@ export default function EstoqueModal({
               id="tipo"
               className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
               value={tipo}
-              onChange={(e) => setTipo(e.target.value as "entrada" | "saida")}
+              onChange={(e) => {
+                setTipo(e.target.value as "entrada" | "saida");
+                setErrors({});
+              }}
               required
             >
               <option value="entrada">Entrada</option>
@@ -102,9 +128,12 @@ export default function EstoqueModal({
               type="number"
               min="1"
               step="1"
-              className="mt-1 block w-full"
+              className={`mt-1 block w-full ${errors.quantidade ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
               value={quantidade}
-              onChange={(e) => setQuantidade(e.target.value)}
+              onChange={(e) => {
+                setQuantidade(e.target.value);
+                if (errors.quantidade) setErrors({ ...errors, quantidade: null });
+              }}
               required
             />
             <InputError message={errors.quantidade} className="mt-2" />
