@@ -224,17 +224,17 @@ const CatalogoProdutos: React.FC<Props> = ({ onAddProduto }) => {
         <div className="flex flex-col sm:flex-row justify-between items-center pt-2 border-t border-gray-200 gap-2 shrink-0">
 
           {/* Seletor de Itens */}
-          <div className="flex items-center gap-2">
+          <div className="relative">
             <select
+              id="itemsPerPageSelect"
               value={itemsPerPage}
               onChange={handleItemsPerPageChange}
-              className="border border-gray-300 rounded px-2 py-1 text-xs focus:ring-blue-500"
+              className="appearance-none border border-gray-300 rounded-md pl-3 pr-8 py-1.5 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-            <span className="text-xs text-gray-500 hidden sm:inline">por pág.</span>
           </div>
 
           {/* Contador de Páginas */}

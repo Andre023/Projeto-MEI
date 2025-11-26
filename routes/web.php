@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ArvoreController;
 use App\Http\Controllers\Api\ClienteController;
 use App\Http\Controllers\Api\ProdutoController;
 use App\Http\Controllers\Api\VendaController;
+use App\Http\Controllers\Api\EstatisticaController;
 
 use App\Models\Cliente;
 use Illuminate\Support\Facades\Auth;
@@ -46,11 +47,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Vendas');
     })->name('vendas');
 
+    // Rota da Página de Estatísticas
+    Route::get('/estatisticas', function () {
+        return Inertia::render('Estatisticas');
+    })->name('estatisticas');
+
     Route::get('/vendas/nova', function () {
-
-        // Agora 'Cliente' e 'Auth' serão reconhecidos
         $clientes = Cliente::where('user_id', Auth::id())->get();
-
         return Inertia::render('Vendas/Create', [
             'clientes' => $clientes,
             'produtos' => []
@@ -62,7 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // (Isto fará com que o Auth::check() funcione para elas)
+    // --- API (JSON) ---
     Route::prefix('api')->group(function () {
         Route::apiResource('clientes', ClienteController::class);
 
@@ -76,8 +79,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Rotas de Venda
         Route::apiResource('vendas', VendaController::class);
+
+        // Rota de Dados das Estatísticas (Faltava esta!)
+        Route::get('/estatisticas', [EstatisticaController::class, 'index']);
     });
 });
-
 
 require __DIR__ . '/auth.php';

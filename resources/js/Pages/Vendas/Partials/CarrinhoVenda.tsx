@@ -3,7 +3,6 @@ import { Cliente } from '@/types';
 import { ItemCarrinho } from '../Create';
 import { Trash2 } from 'lucide-react';
 import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { Link } from '@inertiajs/react';
 
 interface Props {
@@ -81,7 +80,7 @@ const CarrinhoVenda: React.FC<Props> = ({
                 <input
                   type="number"
                   value={item.quantidade}
-                  onChange={(e) => onQuantidadeChange(item.produto_id, parseInt(e.target.value))}
+                  onChange={(e) => onQuantidadeChange(item.produto_id, Number.parseInt(e.target.value))}
                   min="1"
                   max={item.estoque_atual}
                   className="w-20 text-center border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"

@@ -58,6 +58,9 @@ export default function Authenticated({
                 <NavLink href={route('vendas')} active={route().current('vendas')}>
                   Vendas
                 </NavLink>
+                <NavLink href={route('estatisticas')} active={route().current('estatisticas')}>
+                  Estatísticas
+                </NavLink>
               </div>
             </div>
 
@@ -201,6 +204,12 @@ export default function Authenticated({
                 active={route().current("vendas")}
               >
                 Vendas
+              </ResponsiveNavLink>
+              <ResponsiveNavLink
+                href={route("estatisticas")}
+                active={route().current("estatisticas")}
+              >
+                Estatísticas
               </ResponsiveNavLink>
             </div>
 
