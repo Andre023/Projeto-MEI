@@ -15,14 +15,16 @@ import {
 } from "lucide-react";
 import { User } from "@/types";
 
-// Tipagem dos dados (Reaproveitando a estrutura do Controller de Estatísticas)
+// Nova interface compatível com o EstatisticaController atualizado
 interface DashboardData {
-  faturamento: number;
-  lucro: number;
-  vendas_count: number;
-  clientes_count: number;
-  ticket_medio: number;
-  valor_estoque: number;
+  kpi: {
+    faturamento: number;
+    lucro: number;
+    vendas: number; // Mudou de vendas_count para vendas
+    clientes_total: number; // Mudou de clientes_count para clientes_total
+    ticket_medio: number;
+    valor_estoque: number;
+  };
   estoque_baixo: { id: number; nome: string; quantidade_estoque: number }[];
 }
 
@@ -31,7 +33,6 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Saudação baseada no horário
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Bom dia";
@@ -39,7 +40,6 @@ export default function Dashboard() {
     return "Boa noite";
   };
 
-  // Busca dados iniciais (Padrão: últimos 30 dias definidos no Controller)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -88,7 +88,6 @@ export default function Dashboard() {
           </div>
 
           {loading ? (
-            // Skeleton Loading Simples
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
@@ -96,21 +95,20 @@ export default function Dashboard() {
             </div>
           ) : data ? (
             <>
-              {/* --- INDICADORES PRINCIPAIS --- */}
+              {/* --- INDICADORES PRINCIPAIS (Lendo de data.kpi) --- */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 {/* Card Faturamento */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all">
                   <div className="flex justify-between items-start z-10 relative">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Faturamento Mensal</p>
-                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{formatCurrency(data.faturamento)}</h3>
+                      <p className="text-sm font-medium text-gray-500">Faturamento (30d)</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{formatCurrency(data.kpi.faturamento)}</h3>
                     </div>
                     <div className="p-3 bg-blue-50 text-blue-600 rounded-xl group-hover:scale-110 transition-transform">
                       <Wallet size={24} />
                     </div>
                   </div>
-                  {/* Decoração de fundo */}
                   <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 z-0"></div>
                 </div>
 
@@ -119,7 +117,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-gray-500">Vendas Realizadas</p>
-                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{data.vendas_count}</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{data.kpi.vendas}</h3>
                     </div>
                     <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
                       <ShoppingBag size={24} />
@@ -132,7 +130,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-gray-500">Base de Clientes</p>
-                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{data.clientes_count}</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{data.kpi.clientes_total}</h3>
                     </div>
                     <div className="p-3 bg-orange-50 text-orange-600 rounded-xl">
                       <Users size={24} />
@@ -145,7 +143,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="text-sm font-medium text-gray-500">Lucro Estimado</p>
-                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{formatCurrency(data.lucro)}</h3>
+                      <h3 className="text-2xl font-bold text-gray-900 mt-2">{formatCurrency(data.kpi.lucro)}</h3>
                     </div>
                     <div className="p-3 bg-green-50 text-green-600 rounded-xl">
                       <TrendingUp size={24} />
@@ -154,7 +152,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* --- SEÇÃO DIVIDIDA: AÇÕES RÁPIDAS E ALERTAS --- */}
+              {/* --- AÇÕES E ALERTAS --- */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                 {/* Ações Rápidas */}
@@ -205,7 +203,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Alertas de Estoque (Aproveitando que o controller já envia isso) */}
+                {/* Alertas de Estoque */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
                   <div className="p-5 border-b border-gray-100 bg-red-50 flex justify-between items-center">
                     <h3 className="font-semibold text-red-900 flex items-center gap-2">
@@ -217,7 +215,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex-1 overflow-y-auto max-h-[300px] p-2">
-                    {data.estoque_baixo.length > 0 ? (
+                    {/* Proteção caso data.estoque_baixo não venha */}
+                    {data.estoque_baixo && data.estoque_baixo.length > 0 ? (
                       <ul className="space-y-1">
                         {data.estoque_baixo.map((item) => (
                           <li key={item.id} className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg transition-colors">

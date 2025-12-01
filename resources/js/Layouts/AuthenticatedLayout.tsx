@@ -12,15 +12,18 @@ export default function Authenticated({
   children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
 
-  // Corrigido para tipar o 'user' corretamente
   const { user } = usePage().props.auth as { user: User };
 
   const [showingNavigationDropdown, setShowingNavigationDropdown] =
     useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="border-b border-gray-100 bg-white navbar-fixed">
+    // 1. Adicionamos 'pt-16' aqui para empurrar o conteúdo para baixo
+    // (compensando a altura da navbar que agora flutua por cima)
+    <div className="min-h-screen bg-gray-100 pt-16">
+
+      {/* 2. Adicionamos 'fixed top-0 left-0 w-full z-50' para fixar a navbar */}
+      <nav className="fixed top-0 left-0 w-full z-50 border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">
@@ -73,7 +76,6 @@ export default function Authenticated({
                         type="button"
                         className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                       >
-                        {/* --- INÍCIO DA LÓGICA DA FOTO --- */}
                         {user.profile_photo_url ? (
                           <img
                             src={user.profile_photo_url}
@@ -81,14 +83,12 @@ export default function Authenticated({
                             className="h-10 w-10 rounded-full object-cover me-2"
                           />
                         ) : (
-                          // Placeholder
                           <span className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center me-2">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-500">
                               <path d="M10 8a3 3 0 100-6 3 3 0 000 6zM3.465 14.493a1.23 1.23 0 00.41 1.412A9.957 9.957 0 0010 18c2.31 0 4.438-.78 6.125-2.095a1.23 1.23 0 00.41-1.412A9.99 9.99 0 0010 13c-2.31 0-4.438.78-6.125 2.095z" />
                             </svg>
                           </span>
                         )}
-                        {/* --- FIM DA LÓGICA DA FOTO --- */}
 
                         {user.name}
 

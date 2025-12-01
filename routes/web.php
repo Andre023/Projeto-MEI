@@ -82,6 +82,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Rota de Dados das Estatísticas (Faltava esta!)
         Route::get('/estatisticas', [EstatisticaController::class, 'index']);
+
+        Route::get('/estatisticas/produto/{id}', [EstatisticaController::class, 'produto']);
     });
 });
 
