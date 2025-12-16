@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ProfileController extends Controller
 {
@@ -40,18 +41,23 @@ class ProfileController extends Controller
 
         if ($request->hasFile('profile_photo')) {
             $file = $request->file('profile_photo');
-            $path = null;
 
             $request->validate([
-                'profile_photo' => ['nullable', 'image', 'max:2048', 'mimes:jpeg,png,jpg,gif,svg'], // Max 2MB, tipos comuns
+                'profile_photo' => ['nullable', 'image', 'max:2048', 'mimes:jpeg,png,jpg,gif,svg'],
             ]);
 
             if ($request->user()->profile_photo_path) {
                 Storage::disk('public')->delete($request->user()->profile_photo_path);
             }
 
-            $path = $file->store('profile-photos', 'public');
-            $request->user()->profile_photo_path = $path;
+            $filename = 'profile-photos/' . uniqid() . '.webp';
+
+            $manager = Image::read($file);
+            $encoded = $manager->resize(100, 100)->toWebp(80); // Qualidade 80%
+
+            Storage::disk('public')->put($filename, $encoded);
+
+            $request->user()->profile_photo_path = $filename;
             $request->user()->save();
         }
 
@@ -60,7 +66,6 @@ class ProfileController extends Controller
             $request->user()->profile_photo_path = null;
             $request->user()->save();
         }
-
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

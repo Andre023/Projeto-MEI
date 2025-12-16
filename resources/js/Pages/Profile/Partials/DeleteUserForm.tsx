@@ -52,9 +52,9 @@ export default function DeleteUserForm({
   return (
     <section className={`space-y-6 ${className}`}>
       <header>
-        <h2 className="text-lg font-medium text-gray-900">Deletar conta</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Deletar conta</h2>
 
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Uma vez que sua conta é deletada, todos os seus recursos e dados serão
           permanentemente deletados. Antes de deletar sua conta, por favor, baixe qualquer
           dado ou informação que você deseja reter.
@@ -64,12 +64,13 @@ export default function DeleteUserForm({
       <DangerButton onClick={confirmUserDeletion}>Deletar conta</DangerButton>
 
       <Modal show={confirmingUserDeletion} onClose={closeModal}>
-        <form onSubmit={deleteUser} className="p-6">
-          <h2 className="text-lg font-medium text-gray-900">
+        {/* Adicionada a classe dark:bg-gray-800 e cor de texto */}
+        <form onSubmit={deleteUser} className="p-6 bg-white dark:bg-gray-800 transition-colors">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
             Você tem certeza que deseja deletar sua conta?
           </h2>
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Uma vez que sua conta é deletada, todos os seus recursos e dados serão
             permanentemente deletados. Por favor, insira sua senha para confirmar que você deseja
             deletar sua conta.
@@ -78,8 +79,8 @@ export default function DeleteUserForm({
           <div className="mt-6">
             <InputLabel
               htmlFor="password"
-              value="Password"
-              className="sr-only"
+              value="Senha"
+              className="sr-only dark:text-gray-300"
             />
 
             <TextInput
@@ -91,7 +92,7 @@ export default function DeleteUserForm({
               onChange={(e) => setData("password", e.target.value)}
               className="mt-1 block w-3/4"
               isFocused
-              placeholder="Password"
+              placeholder="Senha"
             />
 
             <InputError message={errors.password} className="mt-2" />

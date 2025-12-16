@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreClienteRequest;
 use App\Models\Cliente;
 use Illuminate\Http\Request;
 

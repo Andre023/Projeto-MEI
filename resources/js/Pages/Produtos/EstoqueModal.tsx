@@ -90,23 +90,24 @@ export default function EstoqueModal({
 
   return (
     <Modal show={isOpen} onClose={onClose}>
-      <form onSubmit={handleSubmit} className="p-6">
-        <h2 className="text-lg font-medium text-gray-900">
+      {/* Adicionada cor de fundo e transição */}
+      <form onSubmit={handleSubmit} className="p-6 bg-white dark:bg-gray-800 transition-colors">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
           Movimentar Estoque: {produto?.nome}
         </h2>
 
         {/* Mostra o estoque com destaque visual condicional */}
-        <p className={`text-sm mt-1 ${produto?.quantidade_estoque === 0 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
-          Estoque Atual: <strong>{produto?.quantidade_estoque ?? 0}</strong>
+        <p className={`text-sm mt-1 ${produto?.quantidade_estoque === 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-600 dark:text-gray-400'}`}>
+          Estoque Atual: <strong className="dark:text-gray-200">{produto?.quantidade_estoque ?? 0}</strong>
         </p>
 
         <div className="mt-6 space-y-4">
           {/* Tipo de Movimentação */}
           <div>
-            <InputLabel htmlFor="tipo" value="Tipo de Movimentação" />
+            <InputLabel htmlFor="tipo" value="Tipo de Movimentação" className="dark:text-gray-300" />
             <select
               id="tipo"
-              className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+              className="mt-1 block w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               value={tipo}
               onChange={(e) => {
                 setTipo(e.target.value as "entrada" | "saida");
@@ -122,12 +123,13 @@ export default function EstoqueModal({
 
           {/* Quantidade */}
           <div>
-            <InputLabel htmlFor="quantidade" value="Quantidade" />
+            <InputLabel htmlFor="quantidade" value="Quantidade" className="dark:text-gray-300" />
             <TextInput
               id="quantidade"
               type="number"
               min="1"
               step="1"
+              // O TextInput já tem classes dark, mas o erro precisa de ajuste se houver
               className={`mt-1 block w-full ${errors.quantidade ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
               value={quantidade}
               onChange={(e) => {
@@ -141,7 +143,7 @@ export default function EstoqueModal({
 
           {/* Descrição */}
           <div>
-            <InputLabel htmlFor="descricao" value="Descrição/Motivo (Opcional)" />
+            <InputLabel htmlFor="descricao" value="Descrição/Motivo (Opcional)" className="dark:text-gray-300" />
             <TextInput
               id="descricao"
               className="mt-1 block w-full"

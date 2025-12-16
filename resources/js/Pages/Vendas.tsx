@@ -13,7 +13,7 @@ interface VendasPageProps {
 const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [sortConfig, setSortConfig] = useState<{ key: keyof Venda | null; direction: "asc" | "desc" }>({
-    key: 'created_at', // Melhor padrão para vendas
+    key: 'created_at',
     direction: "desc",
   });
 
@@ -56,7 +56,7 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
       setTotalItems(data.total);
       setTotalPages(data.last_page);
       setCurrentPage(data.current_page);
-      setStartIndex(data.from ? data.from : 0); // Ajuste visual
+      setStartIndex(data.from ? data.from : 0);
       setEndIndex(data.to ? data.to : 0);
 
     } catch (error) {
@@ -68,7 +68,6 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
 
   const fetchClientes = async () => {
     try {
-      // Pega todos os clientes para o filtro
       const response = await axios.get('/api/clientes', { params: { per_page: 100 } });
       setClientes(response.data.data || []);
     } catch (error) {
@@ -81,7 +80,7 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
 
   useEffect(() => {
     if (currentPage !== 1) setCurrentPage(1);
-  }, [searchTerm, itemsPerPage, selectedClienteId]); // Reset pagina ao filtrar
+  }, [searchTerm, itemsPerPage, selectedClienteId]);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Deseja cancelar esta venda? Os itens serão devolvidos ao estoque.")) return;
@@ -104,11 +103,12 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
 
   return (
     <AuthenticatedLayout>
-      <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+      {/* 1. Container Principal Escuro */}
+      <div className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
 
         {/* Header + Busca */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold text-gray-800">Vendas</h2>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Vendas</h2>
 
           <div className="flex flex-1 w-full md:w-auto gap-2 justify-end">
             <div className="relative w-full md:w-64">
@@ -118,13 +118,19 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
                 placeholder="Buscar ID ou Cliente..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
             </div>
-            <button onClick={() => setIsFilterBarOpen(!isFilterBarOpen)} className="p-2 border rounded-md hover:bg-gray-50 text-gray-600">
+            <button
+              onClick={() => setIsFilterBarOpen(!isFilterBarOpen)}
+              className={`p-2 border rounded-md transition-colors ${isFilterBarOpen
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-400 dark:border-gray-500'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600'
+                }`}
+            >
               <Filter size={20} />
             </button>
-            <Link href={route('vendas.create')} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+            <Link href={route('vendas.create')} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
               <Plus size={16} className="mr-1" /> Nova Venda
             </Link>
           </div>
@@ -132,50 +138,50 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
 
         {/* Filtros Expansíveis */}
         {isFilterBarOpen && (
-          <div className="bg-white p-4 rounded-lg shadow-sm animate-fade-in-down">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Filtrar por Cliente</label>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm animate-fade-in-down border border-gray-200 dark:border-gray-700">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Filtrar por Cliente</label>
             <div className="flex gap-2">
               <select
                 value={selectedClienteId}
                 onChange={(e) => setSelectedClienteId(e.target.value)}
-                className="border-gray-300 rounded-md text-sm w-full md:w-1/3 focus:ring-blue-500"
+                className="border-gray-300 dark:border-gray-600 rounded-md text-sm w-full md:w-1/3 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               >
                 <option value="">Todos</option>
                 {clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>
-              <button onClick={() => { setSelectedClienteId(""); setSearchTerm("") }} className="text-sm text-red-600 hover:underline">Limpar</button>
+              <button onClick={() => { setSelectedClienteId(""); setSearchTerm("") }} className="text-sm text-red-600 dark:text-red-400 hover:underline">Limpar</button>
             </div>
           </div>
         )}
 
         {/* Tabela */}
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th onClick={() => handleSort("id")} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700">ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                  <th onClick={() => handleSort("total_venda")} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">Total</th>
-                  <th onClick={() => handleSort("created_at")} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">Data</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                  <th onClick={() => handleSort("id")} className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-100">ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cliente</th>
+                  <th onClick={() => handleSort("total_venda")} className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer">Total</th>
+                  <th onClick={() => handleSort("created_at")} className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer">Data</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500">Carregando...</td></tr>
+                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">Carregando...</td></tr>
                 ) : vendas.length === 0 ? (
-                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500">Nenhuma venda encontrada.</td></tr>
+                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">Nenhuma venda encontrada.</td></tr>
                 ) : (
                   vendas.map((venda) => (
-                    <tr key={venda.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-3 text-sm font-medium text-gray-900">#{venda.id}</td>
-                      <td className="px-6 py-3 text-sm text-gray-600">{venda.cliente?.nome || '-'}</td>
-                      <td className="px-6 py-3 text-sm text-gray-900 font-semibold text-right">{formatCurrency(venda.total_venda)}</td>
-                      <td className="px-6 py-3 text-sm text-gray-500 text-center">{formatDate(venda.created_at)}</td>
+                    <tr key={venda.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                      <td className="px-6 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">#{venda.id}</td>
+                      <td className="px-6 py-3 text-sm text-gray-600 dark:text-gray-300">{venda.cliente?.nome || '-'}</td>
+                      <td className="px-6 py-3 text-sm text-gray-900 dark:text-gray-100 font-semibold text-right">{formatCurrency(venda.total_venda)}</td>
+                      <td className="px-6 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">{formatDate(venda.created_at)}</td>
                       <td className="px-6 py-3 text-center text-sm font-medium">
-                        <button onClick={() => { setVendaDetalhes(venda); setIsDetalhesModalOpen(true); }} className="text-blue-600 hover:text-blue-900 mx-2" title="Detalhes"><Eye size={18} /></button>
-                        <button onClick={() => handleDelete(venda.id)} className="text-red-600 hover:text-red-900 mx-2" title="Cancelar/Excluir"><Trash2 size={18} /></button>
+                        <button onClick={() => { setVendaDetalhes(venda); setIsDetalhesModalOpen(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 mx-2" title="Detalhes"><Eye size={18} /></button>
+                        <button onClick={() => handleDelete(venda.id)} className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 mx-2" title="Cancelar/Excluir"><Trash2 size={18} /></button>
                       </td>
                     </tr>
                   ))
@@ -186,22 +192,22 @@ const Vendas: React.FC<VendasPageProps> = ({ auth }) => {
 
           {/* Paginação */}
           {totalItems > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-              <div className="text-sm text-gray-500">
-                Exibindo <span className="font-medium">{startIndex}</span> a <span className="font-medium">{endIndex}</span> de <span className="font-medium">{totalItems}</span>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-b-lg">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Exibindo <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex}</span> a <span className="font-medium text-gray-700 dark:text-gray-300">{endIndex}</span> de <span className="font-medium text-gray-700 dark:text-gray-300">{totalItems}</span>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded bg-white disabled:opacity-50 text-sm hover:bg-gray-100"
+                  className="px-3 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 disabled:opacity-50 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
                 >
                   Anterior
                 </button>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded bg-white disabled:opacity-50 text-sm hover:bg-gray-100"
+                  className="px-3 py-1 border dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 disabled:opacity-50 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
                 >
                   Próxima
                 </button>

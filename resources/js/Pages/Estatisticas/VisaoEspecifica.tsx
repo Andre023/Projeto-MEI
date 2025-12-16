@@ -64,10 +64,10 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
   const isPositiveTrend = stats ? stats.tendencia_slope >= 0 : true;
   const isPositiveGrowth = stats ? stats.growth_rate >= 0 : true;
 
-  // Cores dinâmicas
-  const trendColor = isPositiveTrend ? "text-emerald-600" : "text-rose-600";
-  const trendBg = isPositiveTrend ? "bg-emerald-50" : "bg-rose-50";
-  const trendBorder = isPositiveTrend ? "border-emerald-100" : "border-rose-100";
+  // Cores dinâmicas (Adaptadas para Dark Mode)
+  const trendColor = isPositiveTrend ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  const trendBg = isPositiveTrend ? "bg-emerald-50 dark:bg-emerald-900/20" : "bg-rose-50 dark:bg-rose-900/20";
+  const trendBorder = isPositiveTrend ? "border-emerald-100 dark:border-emerald-800/30" : "border-rose-100 dark:border-rose-800/30";
   const TrendIcon = isPositiveTrend ? TrendingUp : TrendingDown;
   const ArrowIcon = isPositiveGrowth ? ArrowUpRight : ArrowDownRight;
 
@@ -75,21 +75,16 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
     if (!stats || !stats.grafico_vendas || stats.grafico_vendas.length < 2) return [];
 
     const n = stats.grafico_vendas.length;
-    // Mapeia para X (índice 0, 1, 2...) e Y (valor total)
     const dataPoints = stats.grafico_vendas.map((d, i) => ({ x: i, y: d.total }));
 
-    // Somas necessárias para o método dos Mínimos Quadrados
     const sumX = dataPoints.reduce((acc, p) => acc + p.x, 0);
     const sumY = dataPoints.reduce((acc, p) => acc + p.y, 0);
     const sumXY = dataPoints.reduce((acc, p) => acc + (p.x * p.y), 0);
     const sumXX = dataPoints.reduce((acc, p) => acc + (p.x * p.x), 0);
 
-    // Calcula Slope (m) e Intercept (b) da equação y = mx + b
-    // Nota: O denominador pode ser zero se todos os X forem iguais, mas aqui X é índice sequencial.
     const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
     const intercept = (sumY - slope * sumX) / n;
 
-    // Gera os pontos da reta para cada dia
     return dataPoints.map(p => slope * p.x + intercept);
   }, [stats]);
 
@@ -100,21 +95,21 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
       <div className="max-w-2xl mx-auto relative group">
         <div className="relative transform transition-all duration-300 focus-within:scale-105">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="text-gray-400" size={20} />
+            <Search className="text-gray-400 dark:text-gray-500" size={20} />
           </div>
           <input
             type="text"
             placeholder="Digite o nome do produto para análise avançada..."
-            className="w-full pl-11 pr-4 py-4 rounded-2xl border-2 border-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg transition-colors bg-white"
+            className="w-full pl-11 pr-4 py-4 rounded-2xl border-2 border-gray-100 dark:border-gray-700 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {searchResults.length > 0 && !selectedProduct && (
-            <div className="absolute z-50 w-full bg-white mt-2 rounded-xl shadow-xl border border-gray-100 max-h-80 overflow-y-auto divide-y divide-gray-50">
+            <div className="absolute z-50 w-full bg-white dark:bg-gray-800 mt-2 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700">
               {searchResults.map(p => (
                 <div
                   key={p.id}
-                  className="p-4 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between items-center group/item"
+                  className="p-4 hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center group/item"
                   onClick={() => {
                     setSelectedProduct(p);
                     setSearch(p.nome);
@@ -122,10 +117,10 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
                   }}
                 >
                   <div>
-                    <p className="font-semibold text-gray-800 group-hover/item:text-blue-700">{p.nome}</p>
-                    <p className="text-xs text-gray-500">Cód: {p.codigo || 'N/A'}</p>
+                    <p className="font-semibold text-gray-800 dark:text-gray-200 group-hover/item:text-blue-700 dark:group-hover/item:text-blue-400">{p.nome}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Cód: {p.codigo || 'N/A'}</p>
                   </div>
-                  <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-md">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/50 px-2 py-1 rounded-md">
                     R$ {p.preco}
                   </span>
                 </div>
@@ -135,7 +130,7 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
           {selectedProduct && (
             <button
               onClick={() => { setSelectedProduct(null); setSearch(""); setStats(null); }}
-              className="absolute right-4 top-4 text-xs text-gray-400 hover:text-red-500 font-medium transition-colors"
+              className="absolute right-4 top-4 text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors"
             >
               LIMPAR
             </button>
@@ -146,36 +141,36 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
       {/* --- EMPTY STATE --- */}
       {!selectedProduct && (
         <div className="text-center py-20">
-          <div className="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-            <BarChart3 size={40} className="text-gray-400" />
+          <div className="bg-gray-100 dark:bg-gray-800 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+            <BarChart3 size={40} className="text-gray-400 dark:text-gray-500" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-700">Aguardando Seleção</h3>
-          <p className="text-gray-500 mt-2 max-w-md mx-auto">Pesquise um produto acima para ver indicadores de trading, previsões e análise de rentabilidade.</p>
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">Aguardando Seleção</h3>
+          <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">Pesquise um produto acima para ver indicadores de trading, previsões e análise de rentabilidade.</p>
         </div>
       )}
 
       {/* --- LOADING --- */}
       {loadingStats && (
         <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
         </div>
       )}
 
       {/* --- DASHBOARD DO PRODUTO --- */}
       {stats && selectedProduct && !loadingStats && (
         <>
-          <div className="flex items-center justify-between border-b pb-4 border-gray-200">
+          <div className="flex items-center justify-between border-b pb-4 border-gray-200 dark:border-gray-700">
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 {stats.produto_nome}
-                {stats.tendencia_slope > 0 && <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Em Alta</span>}
-                {stats.tendencia_slope < 0 && <span className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Em Queda</span>}
+                {stats.tendencia_slope > 0 && <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Em Alta</span>}
+                {stats.tendencia_slope < 0 && <span className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Em Queda</span>}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">Análise de desempenho no período selecionado</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Análise de desempenho no período selecionado</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-gray-400 uppercase font-semibold">Preço Atual</p>
-              <p className="text-2xl font-black text-gray-800">{formatCurrency(stats.preco_atual)}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 uppercase font-semibold">Preço Atual</p>
+              <p className="text-2xl font-black text-gray-800 dark:text-white">{formatCurrency(stats.preco_atual)}</p>
             </div>
           </div>
 
@@ -183,42 +178,42 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
             {/* CARD 1: Faturamento & Growth */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:shadow-md transition-all">
               <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity ${isPositiveGrowth ? 'text-emerald-500' : 'text-rose-500'}`}>
                 <Activity size={60} />
               </div>
               <div className="relative z-10">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Faturamento Total</p>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{formatCurrency(stats.faturamento)}</h3>
-                <div className={`flex items-center gap-1 text-sm font-semibold ${isPositiveGrowth ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Faturamento Total</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{formatCurrency(stats.faturamento)}</h3>
+                <div className={`flex items-center gap-1 text-sm font-semibold ${isPositiveGrowth ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                   <ArrowIcon size={16} />
                   <span>{Math.abs(stats.growth_rate)}%</span>
-                  <span className="text-gray-400 font-normal text-xs ml-1">vs. período anterior</span>
+                  <span className="text-gray-400 dark:text-gray-500 font-normal text-xs ml-1">vs. período anterior</span>
                 </div>
               </div>
             </div>
 
             {/* CARD 2: Lucro Real */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
               <div className="flex justify-between items-start mb-2">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Lucro Líquido</p>
-                <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><DollarSign size={18} /></div>
+                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Lucro Líquido</p>
+                <div className="p-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg"><DollarSign size={18} /></div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{formatCurrency(stats.lucro)}</h3>
-              <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{formatCurrency(stats.lucro)}</h3>
+              <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 mb-1">
                 <div
-                  className="bg-blue-500 h-1.5 rounded-full"
+                  className="bg-blue-500 dark:bg-blue-400 h-1.5 rounded-full"
                   style={{ width: `${stats.faturamento > 0 ? Math.min((stats.lucro / stats.faturamento) * 100, 100) : 0}%` }}
                 ></div>
               </div>
-              <p className="text-xs text-gray-500 text-right">{stats.faturamento > 0 ? ((stats.lucro / stats.faturamento) * 100).toFixed(1) : 0}% margem</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-right">{stats.faturamento > 0 ? ((stats.lucro / stats.faturamento) * 100).toFixed(1) : 0}% margem</p>
             </div>
 
             {/* CARD 3: Previsão (Forecast) */}
             <div className={`p-5 rounded-2xl shadow-sm border hover:shadow-md transition-all ${trendBg} ${trendBorder}`}>
               <div className="flex justify-between items-start mb-2">
                 <p className={`text-xs font-bold uppercase tracking-wider ${trendColor}`}>Previsão (Próx. Dia)</p>
-                <div className={`p-1.5 rounded-lg bg-white/60 ${trendColor}`}><Target size={18} /></div>
+                <div className={`p-1.5 rounded-lg bg-white/60 dark:bg-black/20 ${trendColor}`}><Target size={18} /></div>
               </div>
               <h3 className={`text-2xl font-bold mb-2 ${trendColor}`}>
                 {formatCurrency(stats.previsao_proximo_periodo)}
@@ -229,17 +224,17 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
             </div>
 
             {/* CARD 4: Estoque & Giro */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
               <div className="flex justify-between items-start mb-2">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Volume & Estoque</p>
-                <div className="p-1.5 bg-orange-50 text-orange-600 rounded-lg"><Package size={18} /></div>
+                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Volume & Estoque</p>
+                <div className="p-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg"><Package size={18} /></div>
               </div>
               <div className="flex items-end gap-2">
-                <h3 className="text-2xl font-bold text-gray-900">{stats.qtd_vendida} <span className="text-sm font-normal text-gray-500">vendidos</span></h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stats.qtd_vendida} <span className="text-sm font-normal text-gray-500 dark:text-gray-400">vendidos</span></h3>
               </div>
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="text-gray-500">Restante:</span>
-                <span className={`font-bold px-2 py-0.5 rounded text-xs ${stats.estoque_atual < 5 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                <span className="text-gray-500 dark:text-gray-400">Restante:</span>
+                <span className={`font-bold px-2 py-0.5 rounded text-xs ${stats.estoque_atual < 5 ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
                   {stats.estoque_atual} un
                 </span>
               </div>
@@ -250,72 +245,72 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
 
             {/* CARD 5: RUNWAY DE ESTOQUE (Previsão de Esgotamento) */}
             <div className={`p-5 rounded-2xl shadow-sm border flex items-center justify-between transition-all hover:shadow-md
-                            ${stats.dias_para_acabar <= 7 ? 'bg-red-50 border-red-200' :
-                stats.dias_para_acabar <= 30 ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-100'}`}
+                            ${stats.dias_para_acabar <= 7 ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50' :
+                stats.dias_para_acabar <= 30 ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700'}`}
             >
               <div>
                 <p className={`text-xs font-bold uppercase tracking-wider mb-1
-                                    ${stats.dias_para_acabar <= 7 ? 'text-red-600' :
-                    stats.dias_para_acabar <= 30 ? 'text-amber-600' : 'text-gray-400'}`}
+                                    ${stats.dias_para_acabar <= 7 ? 'text-red-600 dark:text-red-400' :
+                    stats.dias_para_acabar <= 30 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-400 dark:text-gray-500'}`}
                 >
                   Previsão de Ruptura
                 </p>
-                <h3 className="text-2xl font-bold text-gray-800">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
                   {stats.dias_para_acabar === 9999 ? 'Estagnado' :
                     stats.dias_para_acabar === 0 ? 'Esgotado' :
                       `${stats.dias_para_acabar} dias`}
                 </h3>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {stats.dias_para_acabar <= 7 && stats.dias_para_acabar > 0 ? 'REPOSIÇÃO URGENTE NECESSÁRIA' :
                     stats.dias_para_acabar === 0 ? 'Você está perdendo vendas!' :
                       'Baseado na velocidade atual'}
                 </p>
               </div>
               <div className={`p-3 rounded-xl 
-                                ${stats.dias_para_acabar <= 7 ? 'bg-red-100 text-red-600' :
-                  stats.dias_para_acabar <= 30 ? 'bg-amber-100 text-amber-600' : 'bg-blue-50 text-blue-600'}`}
+                                ${stats.dias_para_acabar <= 7 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+                  stats.dias_para_acabar <= 30 ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'}`}
               >
                 {stats.dias_para_acabar <= 7 ? <AlertOctagon size={24} /> : <Hourglass size={24} />}
               </div>
             </div>
 
             {/* CARD 6: SHARE DE FATURAMENTO (Importância do Produto) */}
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:shadow-md transition-all">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between hover:shadow-md transition-all">
               <div className="flex-1 pr-4">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">
                   Participação no Faturamento
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-bold text-gray-900">{stats.share_faturamento}%</h3>
-                  <span className="text-xs text-gray-400">da receita total da loja</span>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stats.share_faturamento}%</h3>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">da receita total da loja</span>
                 </div>
                 {/* Barra de progresso visual */}
-                <div className="w-full bg-gray-100 rounded-full h-2 mt-2 overflow-hidden">
+                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mt-2 overflow-hidden">
                   <div
-                    className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                    className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-1000 ease-out"
                     style={{ width: `${Math.max(stats.share_faturamento, 2)}%` }} // Minimo 2% visual
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   {stats.share_faturamento > 20 ? 'Produto Estrela (Curva A)' :
                     stats.share_faturamento > 5 ? 'Produto Importante (Curva B)' : 'Produto Complementar (Curva C)'}
                 </p>
               </div>
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl">
                 <PieChart size={24} />
               </div>
             </div>
           </div>
 
           {/* GRÁFICO PRINCIPAL */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-gray-800 flex items-center gap-2">
+              <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <TrendIcon className={trendColor} size={20} />
                 Evolução e Tendência
               </h3>
               {/* Legenda Customizada */}
-              <div className="flex gap-4 text-xs font-medium">
+              <div className="flex gap-4 text-xs font-medium dark:text-gray-400">
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded-full bg-blue-500"></span> Vendas Reais
                 </div>
@@ -384,7 +379,7 @@ export default function VisaoEspecifica({ dateRange }: VisaoEspecificaProps) {
                   scales: {
                     y: {
                       beginAtZero: true,
-                      grid: { color: '#f3f4f6' },
+                      grid: { color: '#374151' }, // Cor da grade no dark mode fica melhor com opacidade
                       ticks: { callback: (v) => new Intl.NumberFormat('pt-BR', { notation: "compact" }).format(Number(v)) }
                     },
                     x: {

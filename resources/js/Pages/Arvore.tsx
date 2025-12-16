@@ -27,7 +27,6 @@ interface Categoria {
   subcategorias: Subcategoria[];
 }
 
-// --- Props do Componente de Nó Recursivo ---
 interface TreeNodeProps {
   node: any;
   tipo: 'categoria' | 'subcategoria' | 'grupo' | 'subgrupo';
@@ -36,7 +35,6 @@ interface TreeNodeProps {
   onDelete: (id: number, tipo: string) => void;
 }
 
-// --- Componente Recursivo para renderizar cada Nó da Árvore ---
 const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -55,40 +53,37 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
   }
 
   return (
-    <li className="list-none ml-4 pl-4 border-l border-gray-200 relative">
-      <span className="absolute -left-px top-2.5 w-px h-full bg-gray-200" aria-hidden="true" />
+    <li className="list-none ml-4 pl-4 border-l border-gray-200 dark:border-gray-700 relative">
+      <span className="absolute -left-px top-2.5 w-px h-full bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-1.5">
-        {/* Expander */}
         <div className="w-7 h-7 flex-shrink-0">
           {children.length > 0 && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-1 rounded-full text-gray-500 hover:bg-gray-100"
+              className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
             >
               {expanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
             </button>
           )}
         </div>
 
-        {/* Nome */}
-        <span className="font-medium text-gray-800 flex-1 min-w-0 break-words">
+        <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 min-w-0 break-words">
           {node.nome}
-          <span className="text-gray-500 font-normal ml-1.5">(ID: {node.id})</span>
+          <span className="text-gray-500 dark:text-gray-500 font-normal ml-1.5">(ID: {node.id})</span>
         </span>
 
-        {/* Botões de Ação */}
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             onClick={() => onEdit(node, tipo)}
-            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
+            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition duration-150"
             title="Editar"
           >
             <Edit size={16} />
           </button>
           <button
             onClick={() => onDelete(node.id, tipo)}
-            className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
+            className="p-2 rounded-full text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition duration-150"
             title="Excluir"
           >
             <Trash2 size={16} />
@@ -96,7 +91,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
           {tipo !== 'subgrupo' && (
             <button
               onClick={() => onAdd(proximoTipo, node.id)}
-              className="p-2 rounded-full text-blue-600 hover:bg-blue-100 transition duration-150"
+              className="p-2 rounded-full text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/30 transition duration-150"
               title={`Adicionar ${proximoTipo}`}
             >
               <Plus size={16} />
@@ -105,7 +100,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
         </div>
       </div>
 
-      {/* Renderiza os filhos recursivamente */}
       <Transition
         show={expanded && children.length > 0}
         enter="transition-all duration-300 ease-out overflow-hidden"
@@ -132,8 +126,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
   );
 };
 
-
-// --- Componente Principal da Página ---
 const Arvore: React.FC = () => {
   const [arvore, setArvore] = useState<Categoria[]>([]);
   const [nome, setNome] = useState("");
@@ -141,7 +133,6 @@ const Arvore: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [tipo, setTipo] = useState<string>('categoria');
   const [parentId, setParentId] = useState<number | null>(null);
-
 
   const fetchArvore = async () => {
     try {
@@ -211,25 +202,25 @@ const Arvore: React.FC = () => {
 
   return (
     <AuthenticatedLayout>
-      <div className="py-12">
+      <div className="py-12 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
 
-          {/* --- Formulário Unificado --- */}
-          <div className="p-4 sm:p-6 bg-white shadow-sm sm:rounded-lg">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          {/* --- Formulário --- */}
+          <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
               {editingId
                 ? `Editando ${tipo} (ID: ${editingId})`
                 : `Cadastrar novo ${tipo}` + (parentId ? ` (Filho de ID: ${parentId})` : '')}
             </h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome</label>
+                <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
                 <input
                   type="text"
                   id="nome"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                  className="mt-1 block w-full border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
                   placeholder="Nome do item"
                   required
                 />
@@ -238,7 +229,7 @@ const Arvore: React.FC = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <button
                   type="submit"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                 >
                   <Plus size={16} className="mr-2 -ml-1" />
                   {editingId ? "Atualizar" : "Cadastrar"}
@@ -246,7 +237,7 @@ const Arvore: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                  className="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
                 >
                   Limpar / Cancelar
                 </button>
@@ -254,10 +245,10 @@ const Arvore: React.FC = () => {
             </form>
           </div>
 
-          {/* --- Visualizador da Árvore --- */}
-          <div className="p-4 sm:p-6 bg-white shadow-sm sm:rounded-lg">
+          {/* --- Visualizador --- */}
+          <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-              <h2 className="text-lg font-medium text-gray-900">
+              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Visualizador da Árvore
               </h2>
             </div>
@@ -274,7 +265,7 @@ const Arvore: React.FC = () => {
                 />
               ))}
               {arvore.length === 0 && (
-                <p className="text-gray-500 text-center py-4">
+                <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                   Nenhuma categoria encontrada. Comece adicionando uma.
                 </p>
               )}

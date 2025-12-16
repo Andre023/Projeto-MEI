@@ -25,16 +25,15 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
   const formatCurrency = (val: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
 
   if (loading || !data) {
-    return <div className="p-10 text-center text-gray-400 animate-pulse">Carregando painel de rentabilidade...</div>;
+    return <div className="p-10 text-center text-gray-400 dark:text-gray-500 animate-pulse">Carregando painel de rentabilidade...</div>;
   }
 
-  // Proteção de dados (atualizei o objeto kpi padrão com os novos campos)
   const kpi = data.kpi || {
     faturamento: 0, faturamento_growth: 0,
     lucro: 0, lucro_growth: 0,
     vendas: 0, vendas_growth: 0,
-    ticket_medio: 0, ticket_medio_growth: 0, // Novo
-    novos_clientes: 0, novos_clientes_growth: 0, // Novo
+    ticket_medio: 0, ticket_medio_growth: 0,
+    novos_clientes: 0, novos_clientes_growth: 0,
     valor_estoque: 0, clientes_total: 0
   };
 
@@ -56,61 +55,59 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
   return (
     <div className="space-y-6 animate-fade-in pb-10">
 
-      {/* --- CARDS DE KPI PRINCIPAIS --- */}
+      {/* KPI CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <GrowthCard title="Faturamento" value={formatCurrency(kpi.faturamento)} growth={kpi.faturamento_growth} icon={<DollarSign size={22} />} color="blue" />
         <GrowthCard title="Lucro Líquido" value={formatCurrency(kpi.lucro)} growth={kpi.lucro_growth} icon={<TrendingUp size={22} />} color="green" />
         <GrowthCard title="Volume de Vendas" value={kpi.vendas} growth={kpi.vendas_growth} icon={<ShoppingBag size={22} />} color="purple" suffix="pedidos" />
       </div>
 
-      {/* --- WIDGETS ESTRATÉGICOS (PREENCHENDO O BURACO) --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        {/* 1. Widget Curva ABC (Já existia) */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        {/* Curva ABC */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase">Curva A (80% Receita)</p>
-            <p className="text-xl font-bold text-emerald-600">{curva_abc.A} <span className="text-xs text-gray-500 font-normal">produtos</span></p>
+            <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{curva_abc.A} <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">produtos</span></p>
           </div>
           <div className="h-12 w-12"><Doughnut data={abcChartData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, cutout: '70%' }} /></div>
         </div>
 
-        {/* 2. Widget Ticket Médio (NOVO) */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        {/* Ticket Médio */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase">Ticket Médio</p>
-            <p className="text-xl font-bold text-gray-800">{formatCurrency(kpi.ticket_medio)}</p>
-            <div className={`flex items-center gap-1 text-[10px] font-bold mt-1 ${kpi.ticket_medio_growth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p className="text-xl font-bold text-gray-800 dark:text-white">{formatCurrency(kpi.ticket_medio)}</p>
+            <div className={`flex items-center gap-1 text-[10px] font-bold mt-1 ${kpi.ticket_medio_growth >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {kpi.ticket_medio_growth >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
               {Math.abs(kpi.ticket_medio_growth)}% vs. anterior
             </div>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
             <CreditCard size={24} />
           </div>
         </div>
 
-        {/* 3. Widget Novos Clientes (NOVO) */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+        {/* Novos Clientes */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase">Novos Clientes</p>
-            <p className="text-xl font-bold text-gray-800">{kpi.novos_clientes} <span className="text-xs text-gray-500 font-normal">cadastros</span></p>
-            <div className={`flex items-center gap-1 text-[10px] font-bold mt-1 ${kpi.novos_clientes_growth >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            <p className="text-xl font-bold text-gray-800 dark:text-white">{kpi.novos_clientes} <span className="text-xs text-gray-500 dark:text-gray-400 font-normal">cadastros</span></p>
+            <div className={`flex items-center gap-1 text-[10px] font-bold mt-1 ${kpi.novos_clientes_growth >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
               {kpi.novos_clientes_growth >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
               {Math.abs(kpi.novos_clientes_growth)}% vs. anterior
             </div>
           </div>
-          <div className="p-3 bg-orange-50 text-orange-600 rounded-lg">
+          <div className="p-3 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
             <UserPlus size={24} />
           </div>
         </div>
 
       </div>
 
-      {/* --- GRÁFICO E LISTAS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
-          <h3 className="font-semibold text-gray-800 mb-4">Evolução de Faturamento</h3>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 lg:col-span-2">
+          <h3 className="font-semibold text-gray-800 dark:text-white mb-4">Evolução de Faturamento</h3>
           <div className="h-64">
             <Line
               data={{
@@ -128,26 +125,26 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
                   tension: 0.4
                 }]
               }}
-              options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }}
+              options={{ maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#9ca3af' } }, y: { beginAtZero: true, grid: { color: '#374151' }, ticks: { color: '#9ca3af' } } } }}
             />
           </div>
         </div>
 
-        {/* Top Clientes (Por Lucro) */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-4 border-b border-gray-50 flex items-center gap-2">
+        {/* Top Clientes */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="p-4 border-b border-gray-50 dark:border-gray-700 flex items-center gap-2">
             <Crown size={18} className="text-yellow-500" />
-            <h3 className="font-semibold text-gray-800 text-sm">Clientes Mais Lucrativos</h3>
+            <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Clientes Mais Lucrativos</h3>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-gray-50 dark:divide-gray-700">
             {top_clientes_lucro.length > 0 ? top_clientes_lucro.map((cli: any, i: number) => (
-              <div key={i} className="p-3 flex justify-between items-center hover:bg-gray-50">
+              <div key={i} className="p-3 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">{cli.nome}</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{cli.nome}</p>
                   <p className="text-xs text-gray-400">Fat: {formatCurrency(cli.faturamento)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-emerald-600">+{formatCurrency(cli.lucro)}</p>
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">+{formatCurrency(cli.lucro)}</p>
                   <p className="text-[10px] text-emerald-400">Lucro</p>
                 </div>
               </div>
@@ -158,21 +155,20 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
         </div>
       </div>
 
-      {/* --- ANÁLISE DE MARGEM --- */}
-      <h3 className="text-lg font-bold text-gray-800 mt-4">Análise de Margem de Produtos</h3>
+      <h3 className="text-lg font-bold text-gray-800 dark:text-white mt-4">Análise de Margem de Produtos</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {/* Alta Margem */}
-        <div className="bg-white rounded-xl shadow-sm border border-emerald-100">
-          <div className="p-4 border-b border-emerald-50 bg-emerald-50/30 flex items-center gap-2">
-            <TrendingUp size={18} className="text-emerald-600" />
-            <h3 className="font-semibold text-emerald-800 text-sm">Maiores Margens (%)</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-emerald-100 dark:border-emerald-900/50">
+          <div className="p-4 border-b border-emerald-50 dark:border-emerald-900/50 bg-emerald-50/30 dark:bg-emerald-900/10 flex items-center gap-2">
+            <TrendingUp size={18} className="text-emerald-600 dark:text-emerald-400" />
+            <h3 className="font-semibold text-emerald-800 dark:text-emerald-300 text-sm">Maiores Margens (%)</h3>
           </div>
           <div className="p-4 space-y-3">
             {produtos_alta_margem.length > 0 ? produtos_alta_margem.map((prod: any, i: number) => (
               <div key={i} className="flex justify-between items-center">
-                <span className="text-sm text-gray-700 truncate w-2/3">{prod.nome}</span>
-                <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full">
+                <span className="text-sm text-gray-700 dark:text-gray-300 truncate w-2/3">{prod.nome}</span>
+                <span className="text-xs font-bold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-2 py-1 rounded-full">
                   {Math.round(prod.margem_media)}%
                 </span>
               </div>
@@ -181,16 +177,16 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
         </div>
 
         {/* Baixa Margem */}
-        <div className="bg-white rounded-xl shadow-sm border border-red-100">
-          <div className="p-4 border-b border-red-50 bg-red-50/30 flex items-center gap-2">
-            <AlertTriangle size={18} className="text-red-600" />
-            <h3 className="font-semibold text-red-800 text-sm">Margens Críticas (Atenção)</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-red-100 dark:border-red-900/50">
+          <div className="p-4 border-b border-red-50 dark:border-red-900/50 bg-red-50/30 dark:bg-red-900/10 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-red-600 dark:text-red-400" />
+            <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm">Margens Críticas (Atenção)</h3>
           </div>
           <div className="p-4 space-y-3">
             {produtos_baixa_margem.length > 0 ? produtos_baixa_margem.map((prod: any, i: number) => (
               <div key={i} className="flex justify-between items-center">
-                <span className="text-sm text-gray-700 truncate w-2/3">{prod.nome}</span>
-                <span className="text-xs font-bold bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                <span className="text-sm text-gray-700 dark:text-gray-300 truncate w-2/3">{prod.nome}</span>
+                <span className="text-xs font-bold bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded-full">
                   {Math.round(prod.margem_media)}%
                 </span>
               </div>
@@ -202,15 +198,14 @@ export default function VisaoGeral({ dateRange }: VisaoGeralProps) {
   );
 }
 
-// Componente Card de Crescimento
 const GrowthCard = ({ title, value, growth, icon, color, suffix }: any) => {
   const isPositive = (growth || 0) >= 0;
   const Arrow = isPositive ? ArrowUpRight : ArrowDownRight;
-  const colorClass = isPositive ? "text-emerald-600" : "text-rose-600";
-  const bgClass = isPositive ? "bg-emerald-50" : "bg-rose-50";
+  const colorClass = isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400";
+  const bgClass = isPositive ? "bg-emerald-50 dark:bg-emerald-900/30" : "bg-rose-50 dark:bg-rose-900/30";
 
   return (
-    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all">
+    <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
         <div className={`p-2.5 rounded-xl ${bgClass} ${colorClass}`}>{icon}</div>
         <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold ${bgClass} ${colorClass}`}>
@@ -219,7 +214,7 @@ const GrowthCard = ({ title, value, growth, icon, color, suffix }: any) => {
       </div>
       <div>
         <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-900 mt-1">{value} {suffix && <span className="text-sm font-normal text-gray-400 ml-1">{suffix}</span>}</h3>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value} {suffix && <span className="text-sm font-normal text-gray-400 ml-1">{suffix}</span>}</h3>
         <p className="text-xs text-gray-400 mt-2">vs. período anterior</p>
       </div>
     </div>

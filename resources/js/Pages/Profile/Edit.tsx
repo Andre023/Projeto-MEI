@@ -11,11 +11,11 @@ export default function Edit({
 }: PageProps<{ mustVerifyEmail: boolean; status?: string }>) {
   return (
     <AuthenticatedLayout>
-      <Head title="Profile" />
+      <Head title="Perfil" />
 
-      <div className="py-12">
+      <div className="py-12 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
         <div className="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-          <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+          <div className="bg-white dark:bg-gray-800 p-4 shadow sm:rounded-lg sm:p-8 transition-colors border border-gray-200 dark:border-gray-700">
             <UpdateProfileInformationForm
               mustVerifyEmail={mustVerifyEmail}
               status={status}
@@ -23,11 +23,11 @@ export default function Edit({
             />
           </div>
 
-          <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+          <div className="bg-white dark:bg-gray-800 p-4 shadow sm:rounded-lg sm:p-8 transition-colors border border-gray-200 dark:border-gray-700">
             <UpdatePasswordForm className="max-w-xl" />
           </div>
 
-          <div className="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+          <div className="bg-white dark:bg-gray-800 p-4 shadow sm:rounded-lg sm:p-8 transition-colors border border-gray-200 dark:border-gray-700">
             <DeleteUserForm className="max-w-xl" />
           </div>
         </div>

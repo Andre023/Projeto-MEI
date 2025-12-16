@@ -44,16 +44,16 @@ export default function UpdatePasswordForm({
   return (
     <section className={className}>
       <header>
-        <h2 className="text-lg font-medium text-gray-900">Atualizar senha</h2>
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Atualizar senha</h2>
 
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Certifique-se de que sua conta esteja usando uma senha longa e aleatória para se manter segura.
         </p>
       </header>
 
       <form onSubmit={updatePassword} className="mt-6 space-y-6">
         <div>
-          <InputLabel htmlFor="current_password" value="Senha atual" />
+          <InputLabel htmlFor="current_password" value="Senha atual" className="dark:text-gray-300" />
 
           <TextInput
             id="current_password"
@@ -69,7 +69,7 @@ export default function UpdatePasswordForm({
         </div>
 
         <div>
-          <InputLabel htmlFor="password" value="Nova senha" />
+          <InputLabel htmlFor="password" value="Nova senha" className="dark:text-gray-300" />
 
           <TextInput
             id="password"
@@ -88,6 +88,7 @@ export default function UpdatePasswordForm({
           <InputLabel
             htmlFor="password_confirmation"
             value="Confirmar senha"
+            className="dark:text-gray-300"
           />
 
           <TextInput
@@ -103,7 +104,7 @@ export default function UpdatePasswordForm({
         </div>
 
         <div className="flex items-center gap-4">
-          <PrimaryButton disabled={processing}>Save</PrimaryButton>
+          <PrimaryButton disabled={processing}>Salvar</PrimaryButton>
 
           <Transition
             show={recentlySuccessful}
@@ -112,7 +113,7 @@ export default function UpdatePasswordForm({
             leave="transition ease-in-out"
             leaveTo="opacity-0"
           >
-            <p className="text-sm text-gray-600">Saved.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Salvo.</p>
           </Transition>
         </div>
       </form>

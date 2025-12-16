@@ -40,4 +40,9 @@ class Venda extends Model
   {
     return $this->hasMany(VendaItem::class);
   }
+
+  public function isVendaGrande(): bool
+  {
+    return $this->total_venda >= 1000.00;
+  }
 }

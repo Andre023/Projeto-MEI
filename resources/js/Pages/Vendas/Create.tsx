@@ -124,29 +124,31 @@ const CreateVenda: React.FC<CreateVendaProps> = ({ auth, clientes, produtos }) =
     <AuthenticatedLayout>
       <Head title="Nova Venda" />
 
-      <div className="py-12">
+      {/* 1. Fundo geral escuro */}
+      <div className="py-12 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-6">
 
             {/* --- COLUNA DA ESQUERDA (CATÁLOGO) --- */}
             <div className="w-full lg:w-3/5">
-              <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-4">Catálogo de Produtos</h2>
+              {/* 2. Container catálogo escuro */}
+              <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Catálogo de Produtos</h2>
                 <CatalogoProdutos
                   onAddProduto={handleAddProduto}
                 />
-
               </div>
             </div>
+
             {/* --- COLUNA DA DIREITA (CARRINHO/PEDIDO) --- */}
             <div className="w-full lg:w-2/5">
-              <div className="bg-white shadow-sm sm:rounded-lg p-6 sticky top-6">
+              {/* 3. Container carrinho escuro */}
+              <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6 sticky top-24 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3 mb-4">
-                  <ShoppingCart className="text-blue-600" />
-                  <h2 className="text-xl font-semibold">Pedido</h2>
+                  <ShoppingCart className="text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Pedido</h2>
                 </div>
                 <CarrinhoVenda
-                  clientes={clientes}
                   items={items}
                   selectedClienteId={selectedClienteId}
                   isSubmitting={isSubmitting}

@@ -18,7 +18,10 @@ class ArvoreController extends Controller
      */
     public function index()
     {
-        $arvore = Cache::remember('arvore.completa', 60 * 60, function () {
+        $userId = Auth::id();
+        $cacheKey = "arvore.user_{$userId}";
+
+        $arvore = Cache::remember($cacheKey, 60 * 60, function () {
             return CategoriaArvore::with([
                 'subcategorias.grupos.subgrupos'
             ])->get();
@@ -28,8 +31,14 @@ class ArvoreController extends Controller
     }
 
     /**
-     * Armazena um novo nó (Categoria, Subcategoria, Grupo, ou Subgrupo).
+     * Helper para limpar o cache do usuário atual
      */
+    private function clearCache()
+    {
+        $userId = Auth::id();
+        Cache::forget("arvore.user_{$userId}");
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -39,7 +48,6 @@ class ArvoreController extends Controller
         ]);
 
         $model = null;
-
         switch ($data['tipo']) {
             case 'categoria':
                 $model = CategoriaArvore::create($data);
@@ -57,13 +65,12 @@ class ArvoreController extends Controller
                 $model = Subgrupo::create($data);
                 break;
         }
-        Cache::forget('arvore.completa');
+
+        $this->clearCache();
+
         return response()->json($model, 201);
     }
 
-    /**
-     * Atualiza um nó.
-     */
     public function update(Request $request, $id)
     {
         $data = $request->validate([
@@ -74,12 +81,11 @@ class ArvoreController extends Controller
         $model = $this->findModel($data['tipo'], $id);
         $model->update($data);
 
+        $this->clearCache();
+
         return response()->json($model);
     }
 
-    /**
-     * Remove um nó.
-     */
     public function destroy(Request $request, $id)
     {
         $data = $request->validate([
@@ -87,14 +93,13 @@ class ArvoreController extends Controller
         ]);
 
         $model = $this->findModel($data['tipo'], $id);
-        $model->delete(); // O 'onDelete('cascade')' nas migrations cuidará dos filhos
+        $model->delete();
+
+        $this->clearCache();
 
         return response()->json(null, 204);
     }
 
-    /**
-     * Helper para encontrar o model correto.
-     */
     private function findModel($tipo, $id)
     {
         switch ($tipo) {

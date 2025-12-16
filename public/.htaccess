@@ -5,6 +5,24 @@
 
     RewriteEngine On
 
+    # ----------------------------------------------------------------------
+    # 🔒 SEGURANÇA (Adição Importante)
+    # ----------------------------------------------------------------------
+    <IfModule mod_headers.c>
+        # Bloqueia que outros sites coloquem o seu site em iframes (evita Clickjacking)
+        Header always set X-Frame-Options "SAMEORIGIN"
+        # Previne que o navegador tente "adivinhar" o tipo de arquivo (segurança MIME)
+        Header always set X-Content-Type-Options "nosniff"
+        # Proteção básica contra XSS em navegadores antigos
+        Header always set X-XSS-Protection "1; mode=block"
+        # Política de Referrer para privacidade
+        Header always set Referrer-Policy "no-referrer-when-downgrade"
+    </IfModule>
+
+    # ----------------------------------------------------------------------
+    # 🔧 LARAVEL STANDARD
+    # ----------------------------------------------------------------------
+    
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -18,4 +36,60 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 🔥 OTIMIZAÇÃO DE PERFORMANCE E COMPRESSÃO
+# ----------------------------------------------------------------------
+
+# 1. Tenta usar BROTLI (Mais eficiente que Gzip)
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json image/svg+xml application/xml font/woff2
+</IfModule>
+
+# 2. Fallback para GZIP (Se Brotli não existir ou falhar)
+<IfModule mod_deflate.c>
+    <IfModule !mod_brotli.c>
+        AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript application/json image/svg+xml application/xml font/opentype font/otf font/ttf application/vnd.ms-fontobject
+    </IfModule>
+</IfModule>
+
+# ----------------------------------------------------------------------
+# 🚀 CACHE INTELIGENTE (VITE + SPA)
+# ----------------------------------------------------------------------
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Imagens e Fontes (Cache Longo - 1 Ano)
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+
+    # CSS e JS do Vite (Cache Longo - 1 Ano)
+    # Como o Vite gera arquivos com hash (app-XD8s9.js), podemos cachear para sempre.
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # Arquivos estáticos (Assets do build) -> Cache Público e Imutável
+    <FilesMatch "\.(js|css|png|jpg|jpeg|gif|webp|svg|woff|woff2|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # ⚠️ IMPORTANTE PARA REACT/INERTIA:
+    # O index.php (HTML principal) e JSONs de resposta da API NÃO devem ter cache agressivo.
+    # Isso garante que quando você fizer deploy, o usuário receba a nova versão imediatamente.
+    <FilesMatch "\.(php|json)$">
+        Header set Cache-Control "private, no-cache, no-store, must-revalidate"
+    </FilesMatch>
 </IfModule>

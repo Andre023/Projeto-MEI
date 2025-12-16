@@ -53,7 +53,6 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
       setShowDropdown(false);
 
       // Buscar clientes (todos para o select)
-      // Idealmente também deveria ser paginado se tiver muitos clientes, mas vamos focar nos produtos
       axios.get('/api/clientes', { params: { per_page: -1 } })
         .then(res => setClientes(res.data.data || res.data))
         .catch(err => console.error("Erro clientes:", err));
@@ -62,7 +61,6 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
 
   // --- BUSCA DE PRODUTOS (API) ---
   const fetchProdutos = useCallback(async (isLoadMore = false) => {
-    // Se não tiver termo de busca e não for carregar mais, não busca (opcional: pode buscar os primeiros)
     if (!debouncedSearchTerm && !isLoadMore && produtoSearch === "") return;
 
     setIsLoadingProdutos(true);
@@ -85,7 +83,6 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
       }
 
       setPage(nextPage);
-      // Verifica se tem mais páginas
       setHasMore(response.data.current_page < response.data.last_page);
 
     } catch (error) {
@@ -171,19 +168,20 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
 
   return (
     <Modal show={isOpen} onClose={onClose} maxWidth="xl">
-      <form onSubmit={handleSubmit} className="p-6 flex flex-col h-[85vh] md:h-auto">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">Nova Venda</h2>
+      {/* 1. Classes dark adicionadas ao container principal */}
+      <form onSubmit={handleSubmit} className="p-6 flex flex-col h-[85vh] md:h-auto bg-white dark:bg-gray-800 transition-colors">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Nova Venda</h2>
 
         {errors.general && <InputError message={errors.general} className="mb-4" />}
 
-        <div className="space-y-4 flex-1 overflow-y-auto pr-1">
+        <div className="space-y-4 flex-1 overflow-y-auto pr-1 custom-scrollbar">
           {/* Cliente */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cliente *</label>
             <select
               value={selectedClienteId}
               onChange={(e) => setSelectedClienteId(e.target.value)}
-              className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
             >
               <option value="">Selecione...</option>
               {clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -193,16 +191,16 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Busca de Produtos (Com Dropdown e Paginação) */}
           <div className="relative">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Adicionar Produto</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adicionar Produto</label>
             <div className="relative">
-              <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Digite nome ou código..."
                 value={produtoSearch}
                 onChange={(e) => setProdutoSearch(e.target.value)}
                 onFocus={() => { if (produtosEncontrados.length > 0) setShowDropdown(true); }}
-                className="w-full pl-9 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full pl-9 border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 autoComplete="off"
               />
               {isLoadingProdutos && <Loader2 className="absolute right-3 top-2.5 animate-spin text-gray-400 w-4 h-4" />}
@@ -210,26 +208,29 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
 
             {/* Dropdown de Resultados */}
             {showDropdown && (
-              <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+              <div className="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto custom-scrollbar">
                 {produtosEncontrados.length === 0 && !isLoadingProdutos ? (
-                  <div className="p-3 text-sm text-gray-500 text-center">Nenhum produto encontrado.</div>
+                  <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">Nenhum produto encontrado.</div>
                 ) : (
-                  <ul className="divide-y divide-gray-100">
+                  <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                     {produtosEncontrados.map(p => {
                       const stock = p.quantidade_estoque ?? 0;
                       return (
                         <li
                           key={p.id}
                           onClick={() => stock > 0 && handleAddProduto(p)}
-                          className={`px-4 py-2 flex justify-between items-center text-sm cursor-pointer transition-colors ${stock > 0 ? 'hover:bg-blue-50' : 'opacity-50 cursor-not-allowed bg-gray-50'}`}
+                          className={`px-4 py-2 flex justify-between items-center text-sm cursor-pointer transition-colors 
+                            ${stock > 0
+                              ? 'hover:bg-blue-50 dark:hover:bg-gray-700'
+                              : 'opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-700/50'}`}
                         >
                           <div>
-                            <div className="font-medium text-gray-800">{p.nome}</div>
-                            <div className="text-xs text-gray-500">{p.codigo ? `Cod: ${p.codigo}` : ''}</div>
+                            <div className="font-medium text-gray-800 dark:text-gray-200">{p.nome}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{p.codigo ? `Cod: ${p.codigo}` : ''}</div>
                           </div>
                           <div className="text-right">
-                            <div className="font-semibold text-blue-600">{formatCurrency(p.preco)}</div>
-                            <div className={`text-xs ${stock > 0 ? 'text-green-600' : 'text-red-500'}`}>Estoque: {stock}</div>
+                            <div className="font-semibold text-blue-600 dark:text-blue-400">{formatCurrency(p.preco)}</div>
+                            <div className={`text-xs ${stock > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>Estoque: {stock}</div>
                           </div>
                         </li>
                       );
@@ -242,7 +243,7 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => fetchProdutos(true)}
-                    className="w-full py-2 text-xs text-blue-600 font-semibold bg-gray-50 hover:bg-gray-100 border-t border-gray-100 flex justify-center items-center"
+                    className="w-full py-2 text-xs text-blue-600 dark:text-blue-400 font-semibold bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700 flex justify-center items-center"
                   >
                     <ChevronDown size={14} className="mr-1" /> Carregar mais...
                   </button>
@@ -255,29 +256,29 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           {/* Lista de Itens Selecionados */}
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200 min-h-[150px]">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Itens do Pedido</h3>
+          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700 min-h-[150px]">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Itens do Pedido</h3>
             {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-gray-400">
+              <div className="flex flex-col items-center justify-center h-32 text-gray-400 dark:text-gray-500">
                 <p className="text-sm">O carrinho está vazio.</p>
               </div>
             ) : (
               <ul className="space-y-2">
                 {items.map(item => (
-                  <li key={item.produto_id} className="flex items-center justify-between bg-white p-3 rounded shadow-sm border border-gray-200">
+                  <li key={item.produto_id} className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded shadow-sm border border-gray-200 dark:border-gray-700">
                     <div className="flex-1 min-w-0 mr-4">
-                      <div className="text-sm font-medium text-gray-800 truncate">{item.nome}</div>
-                      <div className="text-xs text-gray-500">{formatCurrency(item.preco_unitario)} un.</div>
+                      <div className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{item.nome}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{formatCurrency(item.preco_unitario)} un.</div>
                     </div>
                     <div className="flex items-center gap-3">
                       <input
                         type="number"
                         value={item.quantidade}
                         onChange={(e) => handleQuantidadeChange(item.produto_id, parseInt(e.target.value))}
-                        className="w-16 py-1 px-2 text-sm border-gray-300 rounded text-center focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-16 py-1 px-2 text-sm border-gray-300 dark:border-gray-600 rounded text-center focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                         min="1"
                       />
-                      <button type="button" onClick={() => handleRemoveItem(item.produto_id)} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
+                      <button type="button" onClick={() => handleRemoveItem(item.produto_id)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -289,14 +290,14 @@ const VendaFormModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Rodapé (Total e Botões) */}
-        <div className="border-t pt-4 mt-4">
-          <div className="flex justify-between items-center mb-4 bg-blue-50 p-3 rounded-lg">
-            <span className="text-lg font-bold text-blue-900">Total Geral</span>
-            <span className="text-2xl font-bold text-blue-700">{formatCurrency(totalCarrinho)}</span>
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+          <div className="flex justify-between items-center mb-4 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800/50">
+            <span className="text-lg font-bold text-blue-900 dark:text-blue-100">Total Geral</span>
+            <span className="text-2xl font-bold text-blue-700 dark:text-blue-300">{formatCurrency(totalCarrinho)}</span>
           </div>
           <div className="flex gap-3 justify-end">
             <SecondaryButton onClick={onClose} disabled={isSubmitting}>Cancelar</SecondaryButton>
-            <PrimaryButton disabled={isSubmitting || items.length === 0 || !selectedClienteId} className="bg-blue-600 hover:bg-blue-700">
+            <PrimaryButton disabled={isSubmitting || items.length === 0 || !selectedClienteId} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500">
               {isSubmitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
               Finalizar Venda
             </PrimaryButton>

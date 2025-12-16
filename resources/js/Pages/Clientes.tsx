@@ -149,19 +149,22 @@ const Clientes: React.FC = () => {
 
   return (
     <AuthenticatedLayout>
-      <div className="py-12">
+      <div className="py-12 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
 
-          {/* Barra de Topo: Busca e Botão Novo */}
+          {/* Barra de Topo */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
             <div className="relative w-full sm:w-1/3">
-              <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-2.5 text-gray-400 w-5 h-5 z-10" />
+              {/* Note que estou usando o TextInput padrão do HTML aqui, se fosse o componente TextInput, ele já estaria arrumado. 
+                  Vou aplicar as classes dark manualmente aqui caso não esteja usando o componente */}
               <input
                 type="text"
                 placeholder="Buscar por nome ou telefone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 
+                           dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
               />
             </div>
             <button
@@ -174,10 +177,10 @@ const Clientes: React.FC = () => {
           </div>
 
           {/* Tabela Responsiva */}
-          <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-700 dark:bg-gray-900">
                   <tr>
                     <th onClick={() => handleSort("id")} className="px-6 py-3 text-center text-xs font-medium text-gray-100 uppercase tracking-wider cursor-pointer w-24">
                       ID {getSortIcon("id")}
@@ -193,34 +196,34 @@ const Clientes: React.FC = () => {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {loading ? (
-                    <tr><td colSpan={4} className="text-center py-6 text-gray-500">Carregando...</td></tr>
+                    <tr><td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-400">Carregando...</td></tr>
                   ) : clientes.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-6 text-gray-500">Nenhum cliente encontrado.</td></tr>
+                    <tr><td colSpan={4} className="text-center py-6 text-gray-500 dark:text-gray-400">Nenhum cliente encontrado.</td></tr>
                   ) : (
                     clientes.map((cliente) => (
-                      <tr key={cliente.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                      <tr key={cliente.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200 text-center">
                           {cliente.id}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-200">
                           {cliente.nome}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                           {cliente.telefone}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
                           <button
                             onClick={() => handleOpenModal(cliente)}
-                            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 transition duration-150"
+                            className="p-2 rounded-full text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition duration-150"
                             title="Editar"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(cliente.id)}
-                            className="p-2 rounded-full text-red-600 hover:bg-red-100 transition duration-150"
+                            className="p-2 rounded-full text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30 transition duration-150"
                             title="Excluir"
                           >
                             <Trash2 size={18} />
@@ -236,19 +239,19 @@ const Clientes: React.FC = () => {
 
           {/* Paginação */}
           {totalItems > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-center p-4 bg-white border border-gray-200 rounded-lg gap-4 shadow-sm">
-              <div className="flex items-center gap-3 text-sm text-gray-700">
+            <div className="flex flex-col sm:flex-row justify-between items-center p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg gap-4 shadow-sm">
+              <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
                 <span className="font-medium">Itens por página:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  className="border-gray-300 dark:border-gray-600 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-900 dark:text-white"
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
                   <option value={50}>50</option>
                 </select>
-                <span className="text-gray-600">
+                <span className="text-gray-600 dark:text-gray-400">
                   {startIndex + 1} - {endIndex} de {totalItems}
                 </span>
               </div>
@@ -256,14 +259,14 @@ const Clientes: React.FC = () => {
                 <button
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1 || loading}
-                  className="px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  className="px-3 py-1 border dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50"
                 >
                   Anterior
                 </button>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages || loading}
-                  className="px-3 py-1 border rounded-md hover:bg-gray-50 disabled:opacity-50"
+                  className="px-3 py-1 border dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200 disabled:opacity-50"
                 >
                   Próxima
                 </button>
@@ -275,37 +278,37 @@ const Clientes: React.FC = () => {
 
       {/* Modal de Criação/Edição */}
       <Modal show={isModalOpen} onClose={closeModal}>
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-6 bg-white dark:bg-gray-800 transition-colors">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium text-gray-900">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
               {editingId ? "Editar Cliente" : "Novo Cliente"}
             </h2>
-            <button type="button" onClick={closeModal} className="text-gray-400 hover:text-gray-500">
+            <button type="button" onClick={closeModal} className="text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300">
               <X size={20} />
             </button>
           </div>
 
           <div className="mt-4">
-            <InputLabel htmlFor="nome" value="Nome" />
+            <InputLabel htmlFor="nome" value="Nome" className="dark:text-gray-300" />
             <TextInput
               id="nome"
               type="text"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className="mt-1 block w-full"
+              className="mt-1 block w-full bg-white dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600"
               placeholder="Nome do cliente"
               required
             />
           </div>
 
           <div className="mt-4">
-            <InputLabel htmlFor="telefone" value="Telefone" />
+            <InputLabel htmlFor="telefone" value="Telefone" className="dark:text-gray-300" />
             <TextInput
               id="telefone"
               type="text"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
-              className="mt-1 block w-full"
+              className="mt-1 block w-full bg-white dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600"
               placeholder="(00) 00000-0000"
               required
             />

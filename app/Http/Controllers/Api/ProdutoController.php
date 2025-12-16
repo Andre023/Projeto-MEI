@@ -12,6 +12,7 @@ use Exception;
 use App\Models\AuditoriaProduto;
 use App\Models\MovimentacaoEstoque;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProdutoController extends Controller
 {
@@ -28,50 +29,51 @@ class ProdutoController extends Controller
             $sortKey = 'id';
         }
 
-        $query = Produto::with('subgrupo.grupo.subcategoria.categoria')
-            ->where('user_id', Auth::id());
+        // --- LÓGICA DE FILTROS REUTILIZÁVEL ---
+        // Definimos os filtros numa função para usar tanto com Scout quanto sem Scout
+        $applyFilters = function ($query) use ($request) {
+            // Eager Loading
+            $query->with('subgrupo.grupo.subcategoria.categoria');
 
-        // 1. Filtro de Busca (searchTerm)
+            // Garantia extra do escopo de usuário (embora o Global Scope já cuide, é seguro manter)
+            $query->where('user_id', Auth::id());
+
+            // 2. Filtros da Árvore
+            if ($request->filled('subgrupo_id')) {
+                $query->where('subgrupo_id', $request->input('subgrupo_id'));
+            } elseif ($request->filled('grupo_id')) {
+                $query->whereHas('subgrupo', fn($q) => $q->where('grupo_id', $request->input('grupo_id')));
+            } elseif ($request->filled('subcategoria_id')) {
+                $query->whereHas('subgrupo.grupo', fn($q) => $q->where('subcategoria_id', $request->input('subcategoria_id')));
+            } elseif ($request->filled('categoria_id')) {
+                $query->whereHas('subgrupo.grupo.subcategoria.categoria', fn($q) => $q->where('id', $request->input('categoria_id')));
+            }
+
+            // 3. Filtros de Preço
+            if ($request->filled('preco_min')) {
+                $query->where('preco', '>=', $request->input('preco_min'));
+            }
+            if ($request->filled('preco_max')) {
+                $query->where('preco', '<=', $request->input('preco_max'));
+            }
+
+            // 4. Filtro de Estoque
+            if ($request->input('estoque_positivo') === 'true') {
+                $query->where('quantidade_estoque', '>', 0);
+            }
+        };
+
+        // --- EXECUÇÃO DA BUSCA ---
+
         if ($request->filled('search')) {
-            $term = $request->input('search');
-            $query->where(function ($q) use ($term) {
-                $q->where('nome', 'LIKE', "%{$term}%")
-                    ->orWhere('codigo', 'LIKE', "%{$term}%")
-                    ->orWhere('id', 'LIKE', "%{$term}%");
-            });
+            $query = Produto::search($request->input('search'))
+                ->query($applyFilters);
+        } else {
+            $query = Produto::query();
+            $applyFilters($query);
         }
 
-        // 2. Filtros da Árvore
-        if ($request->filled('subgrupo_id')) {
-            $query->where('subgrupo_id', $request->input('subgrupo_id'));
-        } elseif ($request->filled('grupo_id')) {
-            // Filtra produtos onde o subgrupo pertence ao grupo X
-            $query->whereHas('subgrupo', fn($q) => $q->where('grupo_id', $request->input('grupo_id')));
-        } elseif ($request->filled('subcategoria_id')) {
-            // Filtra produtos onde o subgrupo->grupo pertence à subcategoria X
-            $query->whereHas('subgrupo.grupo', fn($q) => $q->where('subcategoria_id', $request->input('subcategoria_id')));
-        } elseif ($request->filled('categoria_id')) {
-            $query->whereHas('subgrupo.grupo.subcategoria.categoria', fn($q) => $q->where('id', $request->input('categoria_id')));
-        }
-
-        // 3. Filtros de Preço
-        if ($request->filled('preco_min')) {
-            $query->where('preco', '>=', $request->input('preco_min'));
-        }
-        if ($request->filled('preco_max')) {
-            $query->where('preco', '<=', $request->input('preco_max'));
-        }
-
-        // 4. Filtro de Estoque
-        if ($request->input('estoque_positivo') === 'true') {
-            $query->where('quantidade_estoque', '>', 0);
-        }
-
-        // 5. Ordenação
-        $query->orderBy($sortKey, $sortDir);
-
-        // 6. Paginação
-        $produtos = $query->paginate($perPage);
+        $produtos = $query->orderBy($sortKey, $sortDir)->paginate($perPage);
 
         return response()->json($produtos);
     }

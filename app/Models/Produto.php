@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Laravel\Scout\Searchable;
 
 class Produto extends Model
 {
     use HasFactory;
+    use Searchable;
 
     protected $fillable = [
         'nome',
@@ -43,19 +45,23 @@ class Produto extends Model
         return $this->belongsTo(Subgrupo::class);
     }
 
-    /**
-     * Define o relacionamento: um produto tem muitas movimentações de estoque.
-     */
     public function movimentacoes(): HasMany
     {
         return $this->hasMany(MovimentacaoEstoque::class);
     }
 
-    /**
-     * Define o relacionamento: um produto tem muitas auditorias de alteração.
-     */
     public function auditorias(): HasMany
     {
         return $this->hasMany(AuditoriaProduto::class);
+    }
+
+    public function toSearchableArray()
+    {
+        return [
+            'id' => $this->id,
+            'nome' => $this->nome,
+            'codigo' => $this->codigo,
+            'descricao' => $this->descricao,
+        ];
     }
 }

@@ -4,7 +4,7 @@ export default function ApplicationLogo(props: ImgHTMLAttributes<HTMLImageElemen
   return (
     <img
       {...props}
-      src={props.src ?? "/logo.png"}
+      src={props.src ?? "/logo.webp"}
       alt={props.alt ?? "Logo da Aplicação"}
       loading={props.loading ?? "lazy"}
     />

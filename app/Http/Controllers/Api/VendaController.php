@@ -165,7 +165,11 @@ class VendaController extends Controller
       });
 
       return response()->json(null, 204);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+      // Se não achar a venda (ou não for do usuário), retorna 404
+      return response()->json(['message' => 'Venda não encontrada.'], 404);
     } catch (Exception $e) {
+      // Qualquer outro erro (banco, lógica) retorna 500
       return response()->json(['message' => 'Erro ao excluir venda: ' . $e->getMessage()], 500);
     }
   }

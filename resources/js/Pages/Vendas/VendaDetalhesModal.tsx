@@ -25,7 +25,6 @@ const VendaDetalhesModal: React.FC<Props> = ({ isOpen, onClose, venda }) => {
     });
   };
 
-  // Busca os detalhes completos (incluindo itens) ao abrir o modal
   useEffect(() => {
     if (isOpen && venda?.id) {
       setIsLoading(true);
@@ -48,46 +47,47 @@ const VendaDetalhesModal: React.FC<Props> = ({ isOpen, onClose, venda }) => {
 
   return (
     <Modal show={isOpen} onClose={onClose} maxWidth="2xl">
-      <div className="p-6">
-        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+      {/* Fundo Escuro */}
+      <div className="p-6 bg-white dark:bg-gray-800 transition-colors">
+        <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
           Detalhes da Venda #{dadosParaExibir?.id}
         </h2>
 
         {isLoading ? (
-          <div className="py-10 text-center text-gray-500">Carregando itens...</div>
+          <div className="py-10 text-center text-gray-500 dark:text-gray-400">Carregando itens...</div>
         ) : dadosParaExibir ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-semibold text-gray-700">Cliente: </span>
-                <span className="text-gray-900">{dadosParaExibir.cliente?.nome || 'Consumidor Final'}</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Cliente: </span>
+                <span className="text-gray-900 dark:text-gray-100">{dadosParaExibir.cliente?.nome || 'Consumidor Final'}</span>
               </div>
               <div>
-                <span className="font-semibold text-gray-700">Data: </span>
-                <span className="text-gray-900">{formatDate(dadosParaExibir.created_at)}</span>
+                <span className="font-semibold text-gray-700 dark:text-gray-300">Data: </span>
+                <span className="text-gray-900 dark:text-gray-100">{formatDate(dadosParaExibir.created_at)}</span>
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold mb-2 text-gray-800">Itens Vendidos</h3>
-              <div className="max-h-60 overflow-y-auto pr-2 bg-gray-50 rounded-md p-2 border border-gray-200">
-                <ul className="divide-y divide-gray-200">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">Itens Vendidos</h3>
+              <div className="max-h-60 overflow-y-auto pr-2 bg-gray-50 dark:bg-gray-900/50 rounded-md p-2 border border-gray-200 dark:border-gray-700 custom-scrollbar">
+                <ul className="divide-y divide-gray-200 dark:divide-gray-700">
                   {dadosParaExibir.items && dadosParaExibir.items.length > 0 ? (
                     dadosParaExibir.items.map((item: VendaItem) => (
                       <li key={item.id} className="py-2 flex justify-between items-center text-sm">
                         <div>
-                          <span className="font-medium text-gray-800 block">{item.produto?.nome || "Produto Removido"}</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="font-medium text-gray-800 dark:text-gray-200 block">{item.produto?.nome || "Produto Removido"}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {item.quantidade} un. x {formatCurrency(item.preco_unitario)}
                           </span>
                         </div>
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 dark:text-white">
                           {formatCurrency(item.quantidade * item.preco_unitario)}
                         </span>
                       </li>
                     ))
                   ) : (
-                    <li className="text-center py-4 text-gray-500">
+                    <li className="text-center py-4 text-gray-500 dark:text-gray-400">
                       Nenhum item encontrado para esta venda.
                     </li>
                   )}
@@ -95,15 +95,15 @@ const VendaDetalhesModal: React.FC<Props> = ({ isOpen, onClose, venda }) => {
               </div>
             </div>
 
-            <div className="border-t pt-4 flex justify-end items-center">
-              <span className="text-xl font-bold text-gray-900">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 flex justify-end items-center">
+              <span className="text-xl font-bold text-gray-900 dark:text-white">
                 Total: {formatCurrency(dadosParaExibir.total_venda)}
               </span>
             </div>
 
           </div>
         ) : (
-          <p className="text-center text-gray-500">Venda não encontrada.</p>
+          <p className="text-center text-gray-500 dark:text-gray-400">Venda não encontrada.</p>
         )}
 
         <div className="mt-6 flex justify-end">
