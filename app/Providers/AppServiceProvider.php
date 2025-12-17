@@ -2,21 +2,32 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL; // Não se esqueça de importar a classe URL
+use App\Models\Produto;
+use App\Observers\ProdutoObserver;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * Register any application services.
+     */
     public function register(): void
     {
         //
     }
 
+    /**
+     * Bootstrap any application services.
+     */
     public function boot(): void
     {
-        // 🚨 SOLUÇÃO PARA O ERRO MIXED CONTENT NO RAILWAY/RENDER
-        if (config('app.env') === 'production') {
-            URL::forceScheme('https');
-        }
+        // 🚨 CORREÇÃO: Força o Laravel a gerar todos os links com HTTPS
+        URL::forceScheme('https');
+
+        Vite::prefetch(concurrency: 3);
+
+        Produto::observe(ProdutoObserver::class);
     }
 }
