@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use App\Models\Produto;
 use App\Observers\ProdutoObserver;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,9 +23,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // 🚨 CORREÇÃO: Força o Laravel a gerar todos os links com HTTPS
+        URL::forceScheme('https');
+
         Vite::prefetch(concurrency: 3);
 
-        Produto::observe(ProdutoObserver::class); // <-- ADICIONAMOS ESTA LINHA
+        Produto::observe(ProdutoObserver::class);
     }
 }
 
