@@ -2,11 +2,13 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
+import Modal from "@/Components/Modal";
 import { Link, usePage } from "@inertiajs/react";
 import { User } from '@/types';
-import { PropsWithChildren, ReactNode, useState, useEffect } from "react";
+import { PropsWithChildren, ReactNode, useState, useEffect, useMemo } from "react";
 import { Transition } from '@headlessui/react';
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, HelpCircle, X } from "lucide-react";
+import { helpData } from "@/Utils/helpContent";
 
 export default function Authenticated({
   header,
@@ -16,38 +18,38 @@ export default function Authenticated({
   const { user } = usePage().props.auth as { user: User };
 
   const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  // --- Lógica do Dark Mode ---
+  // --- OTIMIZAÇÃO: useMemo ---
+  // Só recalcula se a rota mudar. Evita processamento em re-renders simples (como abrir menu)
+  const currentHelp = useMemo(() => {
+    // @ts-ignore (O Ziggy injeta o route globalmente, o TS pode reclamar sem tipagem extra)
+    const currentRoute = route().current() as string;
+
+    if (!currentRoute) return null;
+
+    const key = Object.keys(helpData).find(k => currentRoute.includes(k));
+    return key ? helpData[key] : null;
+  }, []); // Dependência vazia ou usePage().url se a rota mudar sem recarregar componente
+
+  // --- Lógica do Dark Mode (Mantida) ---
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Verifica se estamos no navegador antes de acessar window/localStorage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        return savedTheme === 'dark';
-      }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
 
-  // Atualiza a classe no HTML e salva no localStorage
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-16 transition-colors duration-300">
-
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 pt-16 transition-colors duration-300 relative">
       <nav className="fixed top-0 left-0 w-full z-50 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors duration-300">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
@@ -261,6 +263,86 @@ export default function Authenticated({
       )}
 
       <main className="main-content dark:text-gray-200">{children}</main>
+
+      {/* --- Botão Flutuante (FAB) --- */}
+      {currentHelp && (
+        <button
+          onClick={() => setShowHelpModal(true)}
+          className="fixed bottom-6 right-6 p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 z-50 flex items-center justify-center border-2 border-white dark:border-gray-700"
+          title="Ajuda"
+        >
+          <HelpCircle className="w-8 h-8" />
+        </button>
+      )}
+
+      {/* --- Modal Otimizado (Máximo Espaço) --- */}
+      <Modal show={showHelpModal} onClose={() => setShowHelpModal(false)} maxWidth="90%">
+
+        <div className="h-full flex flex-col bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+
+          {/* 1. Cabeçalho Minimalista (Compacto) */}
+          <div className="flex-none px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+            <h2 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+              <HelpCircle className="w-5 h-5" />
+              {currentHelp?.title}
+            </h2>
+            <button
+              onClick={() => setShowHelpModal(false)}
+              className="p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* 2. Conteúdo (Padding Reduzido) */}
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+            <div className="space-y-8">
+              {currentHelp?.steps.map((step, index) => (
+                <div key={index} className="flex flex-col gap-2">
+
+                  {/* Título do Passo e Contador na mesma linha para economizar altura */}
+                  <div className="flex items-center gap-3">
+                    <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 font-bold text-sm">
+                      {index + 1}
+                    </span>
+                    <h3 className="font-bold text-lg leading-tight">{step.title}</h3>
+                  </div>
+
+                  {/* Descrição e Imagem */}
+                  <div className="ml-9"> {/* Indentação alinhada com o texto acima */}
+                    <p className="text-gray-600 dark:text-gray-400 mb-2 text-base">
+                      {step.description}
+                    </p>
+
+                    {step.image && (
+                      <div className="mt-2 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm inline-block">
+                        <img
+                          src={step.image}
+                          alt={`Passo ${index + 1}`}
+                          // Use 'max-h' para controlar a altura do print. Ajuste conforme necessário.
+                          className="w-auto h-auto max-h-[60vh] object-contain bg-gray-100 dark:bg-gray-900"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* 3. Botão "Entendi" (No final do conteúdo, sem rodapé fixo) */}
+              <div className="pt-4 mt-8 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+                <button
+                  onClick={() => setShowHelpModal(false)}
+                  className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-sm font-medium transition shadow-sm"
+                >
+                  Entendi
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </Modal>
+
     </div>
   );
 }

@@ -70,7 +70,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({ node, tipo, onAdd, onEdit, onDelete
 
         <span className="font-medium text-gray-800 dark:text-gray-200 flex-1 min-w-0 break-words">
           {node.nome}
-          <span className="text-gray-500 dark:text-gray-500 font-normal ml-1.5">(ID: {node.id})</span>
         </span>
 
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -209,8 +208,8 @@ const Arvore: React.FC = () => {
           <div className="p-4 sm:p-6 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
               {editingId
-                ? `Editando ${tipo} (ID: ${editingId})`
-                : `Cadastrar novo ${tipo}` + (parentId ? ` (Filho de ID: ${parentId})` : '')}
+                ? `Editando ${tipo}`
+                : `Cadastrar ${tipo}`}
             </h2>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
