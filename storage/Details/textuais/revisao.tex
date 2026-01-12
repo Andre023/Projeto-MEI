@@ -1,0 +1,54 @@
+% Arquivo: textuais/revisao.tex
+
+\chapter{Fundamentação Teórica}
+\label{cap:fundamentacao}
+
+Este capítulo apresenta as tecnologias e conceitos de Engenharia de Software utilizados para o desenvolvimento do Sistema de Controle Gerencial para MEIs. A escolha da arquitetura e das ferramentas priorizou a produtividade, a segurança e a manutenibilidade do código, alinhando-se às necessidades de um sistema web moderno.
+
+\section{O Framework Laravel e a Arquitetura MVC}
+\label{sec:laravel}
+
+Para o desenvolvimento do \textit{backend} (o servidor da aplicação), optou-se pela utilização do \textbf{Laravel} (versão 11), um \textit{framework} PHP robusto e amplamente adotado no mercado. O Laravel utiliza o padrão de arquitetura \textbf{MVC (Model-View-Controller)}, que separa a aplicação em três camadas lógicas, facilitando a organização e a escalabilidade do software \cite{laravel2025}.
+
+No contexto deste projeto, o MVC é aplicado da seguinte forma:
+
+\begin{itemize}
+    \item \textbf{Model (Modelo):} Responsável pela representação dos dados e regras de negócio. O Laravel utiliza o \textbf{Eloquent ORM} (\textit{Object-Relational Mapping}), que permite interagir com o banco de dados utilizando classes PHP em vez de SQL puro. Por exemplo, a model \texttt{Produto} mapeia a tabela de produtos e contém a lógica para relacionamentos com categorias e movimentações de estoque.
+    
+    \item \textbf{Controller (Controlador):} Intermedia as requisições do usuário e o modelo. Controladores como o \texttt{VendaController} recebem os dados da venda, validam as regras de negócio e acionam o salvamento no banco de dados.
+    
+    \item \textbf{View (Visão):} Diferente de aplicações tradicionais onde o HTML é gerado no servidor, este projeto delega a camada de visão para o \textit{frontend} via Inertia.js, conforme detalhado na próxima seção.
+\end{itemize}
+
+% AQUI ESTAVA O ERRO: Substituímos "Monólito Moderno" por ``Monólito Moderno''
+\section{Single Page Applications (SPA) e o ``Monólito Moderno''}
+\label{sec:inertia}
+
+Tradicionalmente, para criar uma aplicação web dinâmica (SPA - \textit{Single Page Application}), seria necessário construir uma API REST completa separada do \textit{frontend}. No entanto, este projeto adota uma abordagem de \textbf{``Monólito Moderno''} utilizando a biblioteca \textbf{Inertia.js} \cite{inertia2024}.
+
+O Inertia.js atua como uma ``cola'' entre o \textit{framework} de \textit{backend} (Laravel) e o \textit{framework} de \textit{frontend} (React). Ele permite que controladores do Laravel retornem componentes React diretamente, em vez de JSON ou HTML simples. Isso elimina a complexidade de gerenciar rotas de API e estados globais complexos, acelerando o desenvolvimento sem sacrificar a experiência fluida do usuário, onde a página não precisa ser recarregada a cada clique.
+
+\section{Frontend Declarativo com React e TypeScript}
+\label{sec:react}
+
+A interface do usuário foi construída utilizando a biblioteca \textbf{React}, que permite a criação de componentes reutilizáveis e reativos. Para garantir maior robustez e evitar erros comuns de programação, o projeto utiliza \textbf{TypeScript} (\texttt{.tsx}), uma linguagem que adiciona tipagem estática ao JavaScript \cite{microsoft2024}.
+
+O uso de TypeScript é evidenciado nas interfaces de definição de tipos, que garantem que os dados manipulados no \textit{frontend} (como os dados de um Cliente ou Produto) estejam no formato correto antes mesmo da execução do código. A estrutura de componentes promove a modularização, onde botões, formulários e modais são peças independentes que podem ser reutilizadas em todo o sistema.
+
+\section{Estilização Utilitária com Tailwind CSS}
+\label{sec:tailwind}
+
+Para a estilização das interfaces, o projeto utiliza o \textbf{Tailwind CSS}, um \textit{framework} CSS \textit{"utility-first"}. Ao contrário do CSS tradicional, onde se criam classes semânticas em arquivos separados, o Tailwind permite aplicar estilos diretamente no HTML (ou JSX) através de classes utilitárias pré-definidas \cite{tailwind2024}.
+
+Essa abordagem traz vantagens significativas para o projeto:
+\begin{enumerate}
+    \item \textbf{Agilidade:} O desenvolvedor não precisa alternar entre arquivos de script e de estilo.
+    \item \textbf{Consistência:} O sistema segue um padrão visual rígido (espaçamentos, cores, tipografia) definido no arquivo de configuração, garantindo uma interface profissional e coesa.
+\end{enumerate}
+
+\section{Qualidade de Software e Testes Automatizados (TDD)}
+\label{sec:tdd}
+
+A confiabilidade do sistema é garantida através de práticas de testes automatizados. O projeto utiliza o \textbf{PHPUnit} para a execução de testes de integração e unitários.
+
+A estratégia de testes abrange fluxos críticos do negócio, como a garantia da integridade do estoque (impedindo vendas de produtos sem saldo) e a segurança dos dados dos usuários. Arquivos de teste demonstram a preocupação com a qualidade do software, assegurando que novas alterações no código não quebrem funcionalidades existentes (prevenção de regressão) \cite{beck2003}.

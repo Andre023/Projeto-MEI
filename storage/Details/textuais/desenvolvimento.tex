@@ -1,0 +1,70 @@
+% Arquivo: textuais/desenvolvimento.tex
+
+\chapter{Desenvolvimento e Implementação}
+\label{cap:desenvolvimento}
+
+Este capítulo detalha a implementação técnica do sistema, focando nas decisões de engenharia de software tomadas para garantir performance, escalabilidade e uma experiência de utilizador fluida. São descritos os algoritmos de inteligência de negócio no \textit{backend} e as estratégias de visualização de dados no \textit{frontend}.
+
+\section{Processamento de Dados e Inteligência de Negócio}
+\label{sec:processamento}
+
+A inteligência do sistema reside na camada de controlo, especificamente no \texttt{EstatisticaController}. Diferente de sistemas cadastrais simples, a implementação realiza cálculos estatísticos complexos para transformar dados brutos em informação estratégica para o MEI.
+
+\subsection{Otimização com Eloquent e Query Builder}
+Para garantir a performance no cálculo de lucratividade e margens, evitou-se o processamento de grandes coleções de dados na memória do PHP. Utilizou-se o \textit{Query Builder} do Laravel para delegar a aritmética pesada ao banco de dados (MySQL).
+
+Através de instruções \texttt{DB::raw} e funções de agregação, o sistema calcula o lucro líquido subtraindo o custo do preço unitário diretamente na consulta SQL, reduzindo drasticamente o tempo de resposta e o consumo de memória do servidor.
+
+\subsection{Algoritmo de Curva ABC}
+O sistema implementa nativamente o princípio de Pareto (80/20) para gestão de stock. O algoritmo itera sobre os produtos ordenados por faturamento decrescente e calcula o percentual acumulado para classificar os itens em:
+
+\begin{itemize}
+    \item \textbf{Classe A:} Itens de alta prioridade, responsáveis por até 80\% do faturamento acumulado.
+    \item \textbf{Classe B:} Itens de média prioridade, responsáveis pelos próximos 15\% (acumulado até 95\%).
+    \item \textbf{Classe C:} Itens de baixa prioridade (cauda longa), correspondentes aos 5\% restantes.
+\end{itemize}
+
+Essa classificação permite ao microempreendedor focar seus esforços de reposição e negociação nos produtos que realmente sustentam o negócio.
+
+\subsection{Análise Preditiva com Regressão Linear}
+Um dos diferenciais técnicos do projeto é a implementação de um algoritmo de Regressão Linear Simples (Mínimos Quadrados) no \textit{backend}. 
+
+O método analisa a série histórica de vendas diárias para calcular o coeficiente angular (\textit{slope}) e a interseção da reta de tendência. Isso permite ao sistema projetar matematicamente o faturamento provável do próximo período, oferecendo uma ferramenta de planeamento baseada em dados, e não apenas em intuição.
+
+\section{Visualização de Dados e Interface}
+\label{sec:visualizacao}
+
+A camada de apresentação utiliza uma abordagem de \textit{Client-Side Rendering} (CSR) seletiva para o Painel de Controle (\textit{Dashboard}), garantindo interatividade instantânea.
+
+\subsection{Renderização de Gráficos}
+Para a visualização dos dados, utilizou-se a biblioteca \textbf{Chart.js} encapsulada em componentes React. A escolha deve-se à sua renderização em \textit{HTML5 Canvas}, que oferece alta performance para animações. Foram implementados gráficos de Linha para a evolução temporal de vendas e gráficos de Rosca (\textit{Doughnut}) para a representação visual da Curva ABC.
+
+\subsection{Carregamento Assíncrono}
+Enquanto a navegação principal é gerida pelo Inertia.js, o \textit{Dashboard} adota uma estratégia de carregamento assíncrono via \textbf{Axios}. 
+
+Ao acessar a página de estatísticas, a estrutura da interface (o "esqueleto") é renderizada imediatamente para o utilizador. Em segundo plano, o navegador realiza uma requisição à API para buscar os dados estatísticos pesados. Essa estratégia desacopla o tempo de processamento do banco de dados da renderização da interface, aumentando a percepção de velocidade (\textit{Perceived Performance}) do sistema.
+
+\section{Tecnologias e Ferramentas Utilizadas}
+\label{sec:tecnologias}
+
+A Tabela \ref{tab:stack} resume as principais tecnologias, bibliotecas e ferramentas que compõem a arquitetura do projeto, evidenciando o caráter "Fullstack" moderno da solução.
+
+\begin{table}[htb]
+\centering
+\caption{Stack Tecnológico do Projeto}
+\label{tab:stack}
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Categoria} & \textbf{Tecnologia} & \textbf{Função no Projeto} \\ \hline
+Linguagem Backend & PHP 8.2+ & Processamento no servidor e regras de negócio. \\ \hline
+Framework & Laravel 11 & Estrutura MVC, Roteamento, ORM e Segurança. \\ \hline
+Frontend & React 18 & Criação de interfaces reativas e tipagem estática (TypeScript). \\ \hline
+Ponte Fullstack & Inertia.js 2.0 & Conexão entre Backend e Frontend sem API REST complexa. \\ \hline
+Banco de Dados & MySQL & Persistência relacional de dados. \\ \hline
+Visualização & Chart.js & Renderização visual de gráficos estatísticos. \\ \hline
+Estilização & Tailwind CSS & Framework utilitário para design responsivo. \\ \hline
+Testes & PHPUnit & Testes automatizados de integração e unidade. \\ \hline
+HTTP Client & Axios & Requisições assíncronas para o Dashboard. \\ \hline
+\end{tabular}
+\legend{Fonte: Elaborado pelo autor.}
+\end{table}
