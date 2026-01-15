@@ -112,24 +112,174 @@ Os resultados obtidos demonstram a eficácia da escolha da \textit{stack} tecnol
 
 O alto desempenho é atribuído ao uso de carregamento assíncrono para componentes pesados e à renderização eficiente do \textit{Virtual DOM} do React. A acessibilidade foi garantida através do uso de tags semânticas HTML5 e atributos ARIA adequados nos componentes de interface.
 
-\subsection{Interfaces do Sistema}
+\subsection{Apresentação das Funcionalidades e Interfaces}
+\label{sec:apresentacao-telas}
 
-Abaixo são apresentadas as telas principais do sistema desenvolvido, evidenciando a usabilidade e a aplicação da identidade visual proposta.
+O sistema web foi projetado para ser eficiente, prático e intuitivo, com uma curva de aprendizado bem simples e com suporte a diversas telas. Abaixo são apresentados os principais módulos do sistema, destacando as funcionalidades de inteligência de negócio e organização mercadológica implementadas.
+
+\subsubsection{Painel de Controle e Indicadores (Dashboard)}
+
+Ao acessar o sistema, o usuário é recebido pelo Painel de Controle (Figura \ref{fig:dashboard}). Esta tela consome a API de estatísticas para apresentar o desempenho financeiro em tempo real.
 
 \begin{figure}[htb]
-    \caption{\label{fig:dashboard}Painel de Controle (Dashboard) do Sistema}
+    \caption{\label{fig:dashboard}Painel de Controle com Indicadores de Desempenho}
     \begin{center}
-        % Substitua 'dashboard' pelo nome do arquivo do seu print do dashboard
-        \includegraphics[width=1.0\textwidth]{dashboard}
+        % Mantenha o seu print atual do dashboard aqui
+        \includegraphics[width=1.0\textwidth]{img/dashboard}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+Diferente de painéis administrativos comuns, este \textit{dashboard} implementa a lógica da **Curva ABC** (visível no gráfico de rosca), classificando automaticamente os produtos por relevância financeira. Além disso, os cartões de KPI (\textit{Key Performance Indicators}) exibem comparativos de crescimento percentual em relação ao período anterior, calculados dinamicamente pelo \textit{backend}.
+
+\subsubsection{Visão Estratégica de Produto}
+
+Para uma análise granular, o sistema oferece a "Visão Específica de Produto" (Figura \ref{fig:visao-produto}). Esta interface aplica algoritmos de regressão linear para auxiliar na tomada de decisão de reposição de estoque.
+
+\begin{figure}[htb]
+    \caption{\label{fig:visao-produto}Análise Preditiva e Runway de Estoque}
+    \begin{center}
+        % TIRE UM PRINT DA TELA 'VisaoEspecifica.tsx' e salve como 'visao-produto.png'
+        \includegraphics[width=1.0\textwidth]{img/visao-produto}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+Nesta tela, destacam-se:
+\begin{itemize}
+    \item \textbf{Gráfico de Tendência:} Sobreposição das vendas reais com a linha de tendência estatística.
+    \item \textbf{Previsão de Ruptura (Runway):} Um indicador alerta em quantos dias o estoque acabará com base na velocidade média de vendas atual, permitindo ações preventivas antes da perda de receita.
+\end{itemize}
+
+\subsubsection{Clientes}
+
+texto \ref{fig:clientes}.
+
+\begin{figure}[htb]
+    \caption{\label{fig:clientes}Gestão de Clientes}
+    \begin{center}
+        % TIRE UM PRINT DA TELA 'Produtos.tsx' MOSTRANDO OS FILTROS ABERTOS ou A TELA 'Arvore.tsx'
+        \includegraphics[width=1.0\textwidth]{img/clientes}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Organização Mercadológica (Árvore e Listagem)}
+
+A gestão do catálogo utiliza uma estrutura hierárquica de quatro níveis (Categoria, Subcategoria, Grupo e Subgrupo), conforme demonstrado na Figura \ref{fig:arvores}.
+
+\begin{figure}[htb]
+    \caption{\label{fig:arvores}Gestão de Catálogo e Estrutura Hierárquica}
+    \begin{center}
+        % TIRE UM PRINT DA TELA 'Produtos.tsx' MOSTRANDO OS FILTROS ABERTOS ou A TELA 'Arvore.tsx'
+        \includegraphics[width=1.0\textwidth]{img/arvores}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Produtos}
+
+A listagem de produtos implementa filtros em cascata baseados nessa árvore, permitindo que o microempreendedor segmente seu estoque com precisão. A interface utiliza paginação no servidor (\textit{server-side pagination}) para garantir performance mesmo com milhares de registros, e feedback visual imediato para níveis críticos de estoque. \ref{fig:produtos}.
+
+\begin{figure}[htb]
+    \caption{\label{fig:produtos}Gestão de produtos}
+    \begin{center}
+        % TIRE UM PRINT DA TELA 'Produtos.tsx' MOSTRANDO OS FILTROS ABERTOS ou A TELA 'Arvore.tsx'
+        \includegraphics[width=1.0\textwidth]{img/produtos}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+texto2 \ref{fig:botoes_produtos}.
+
+\begin{figure}[htb]
+    \caption{\label{fig:botoes_produtos}Gestão de produtos}
+    \begin{center}
+        % TIRE UM PRINT DA TELA 'Produtos.tsx' MOSTRANDO OS FILTROS ABERTOS ou A TELA 'Arvore.tsx'
+        \includegraphics[width=1.0\textwidth]{img/botoes_produtos}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Ponto de Venda (PDV)}
+
+A tela de vendas (Figura \ref{fig:vendas}) foi otimizada para agilidade operacional. Ela integra a baixa automática de estoque e o recálculo imediato dos indicadores financeiros apresentados anteriormente.
+
+\begin{figure}[htb]
+    \caption{\label{fig:vendas}Interface de Realização de Vendas}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/vendas1}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+texto2 \ref{fig:vendas2})
+
+\begin{figure}[htb]
+    \caption{\label{fig:vendas2}xdd}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/vendas2}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Statistical}
+
+texto \ref{fig:estatisticas})
+
+\begin{figure}[htb]
+    \caption{\label{fig:estatisticas}estatisticas}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/estatisticas}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+texto2 \ref{fig:hype})
+
+\begin{figure}[htb]
+    \caption{\label{fig:hype}xdd}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/hype}
     \end{center}
     \legend{Fonte: Elaborado pelo autor.}
 \end{figure}
 
 \begin{figure}[htb]
-    \caption{\label{fig:vendas}Tela de Realização de Vendas}
+    \caption{\label{fig:queda}xdd}
     \begin{center}
-        % Substitua 'vendas' pelo nome do arquivo do seu print de vendas
-        \includegraphics[width=1.0\textwidth]{vendas}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/queda}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Tutorial}
+
+texto \ref{fig:tutorial})
+
+\begin{figure}[htb]
+    \caption{\label{fig:tutorial}estatisticas}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/tutorial}
+    \end{center}
+    \legend{Fonte: Elaborado pelo autor.}
+\end{figure}
+
+\subsubsection{Responsivo}
+
+texto \ref{fig:responsivo})
+
+\begin{figure}[htb]
+    \caption{\label{fig:responsivo}responsivo}
+    \begin{center}
+        % Mantenha o seu print atual de vendas aqui
+        \includegraphics[width=1.0\textwidth]{img/responsivo}
     \end{center}
     \legend{Fonte: Elaborado pelo autor.}
 \end{figure}
